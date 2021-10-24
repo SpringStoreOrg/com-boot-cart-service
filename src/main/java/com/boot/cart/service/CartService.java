@@ -37,14 +37,14 @@ public class CartService {
 
 	@Autowired
 	CartRepository cartRepository;
-	
+
 	@Autowired
 	ProductServiceClient productServiceClient;
-	
+
 	@Autowired
 	UserServiceClient userServiceClient;
 
-	public CartDTO addProductToCart(String userName, String productName, int quantity)
+	public CartDTO addProductToCart(String email, String productName, int quantity)
 			throws InvalidInputDataException, EntityNotFoundException {
 		log.info("addProductToCart - process started");
 		Product product;
@@ -67,9 +67,9 @@ public class CartService {
 		}
 		User user;
 		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByUserName(userName));
+			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
 		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
+			throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
 		}
 		Cart cart = cartRepository.findByUser(user);
 
@@ -114,7 +114,7 @@ public class CartService {
 
 		User user;
 		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByUserName(userName));
+			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
 		} catch (HttpClientErrorException.NotFound e) {
 			throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
 		}
@@ -162,7 +162,7 @@ public class CartService {
 
 		User user;
 		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByUserName(userName));
+			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
 		} catch (HttpClientErrorException.NotFound e) {
 			throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
 		}
@@ -192,16 +192,21 @@ public class CartService {
 		log.info("Cart is empty (null)!");
 	}
 
-	public CartDTO getCartByUserName(String userName) throws EntityNotFoundException {
+	public CartDTO getCartByEmail(String email) throws EntityNotFoundException {
+	
 		User user;
 		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByUserName(userName));
+			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
 
 		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
+			throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
 		}
-		Cart cart = cartRepository.findByUser(user);
-		return CartMapper.cartEntityToDto(cart);
+
+		if (cartRepository.findByUser(user) != null) {
+			Cart cart = cartRepository.findByUser(user);
+			return CartMapper.cartEntityToDto(cart);
+		}
+		else return null;
 	}
 
 	public Set<CartDTO> getAllCarts() throws EntityNotFoundException {

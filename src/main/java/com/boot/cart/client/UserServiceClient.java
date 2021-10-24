@@ -13,9 +13,9 @@ public class UserServiceClient {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	public UserDTO callGetUserByUserName(String userName) {
+	public UserDTO callGetUserByEmail(String email) {
 
-		return restTemplate.getForEntity(Constants.GET_USER_BY_USER_NAME + userName, UserDTO.class).getBody();
+		return restTemplate.getForEntity(Constants.GET_USER_BY_EMAIL + email, UserDTO.class).getBody();
 	}
 
 	public void callUpdateUser(String userName, UserDTO user) {

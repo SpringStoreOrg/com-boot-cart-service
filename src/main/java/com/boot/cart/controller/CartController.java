@@ -29,11 +29,11 @@ public class CartController {
 	@Autowired
 	private CartService cartService;
 
-	@PostMapping("/addProductToCart/{userName}/{productName}/{quantity}")
-	public ResponseEntity<CartDTO> addProductToCart(@PathVariable("userName") String userName,
+	@PostMapping("/addProductToCart/{email}/{productName}/{quantity}")
+	public ResponseEntity<CartDTO> addProductToCart(@PathVariable("email") String email,
 			@PathVariable("productName") String productName, @PathVariable("quantity") int quantity)
 			throws InvalidInputDataException, EntityNotFoundException {
-		CartDTO newCart = cartService.addProductToCart(userName, productName, quantity);
+		CartDTO newCart = cartService.addProductToCart(email, productName, quantity);
 		return new ResponseEntity<>(newCart, HttpStatus.CREATED);
 	}
 
@@ -52,10 +52,10 @@ public class CartController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@GetMapping("/getCartByUserName")
+	@GetMapping("/getCartByEmail")
 	@ResponseBody
-	public ResponseEntity<CartDTO> getCartByUserName(@RequestParam String userName) throws EntityNotFoundException {
-		CartDTO newCart = cartService.getCartByUserName(userName);
+	public ResponseEntity<CartDTO> getCartByEmail(@RequestParam String email) throws EntityNotFoundException {
+		CartDTO newCart = cartService.getCartByEmail(email);
 		return new ResponseEntity<>(newCart, HttpStatus.OK);
 	}
 
