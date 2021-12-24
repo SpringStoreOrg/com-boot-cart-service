@@ -1,7 +1,6 @@
 
 package com.boot.cart.controller;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,11 +27,19 @@ public class CartController {
 	@Autowired
 	private CartService cartService;
 
-	@PostMapping("/addProductToCart/{email}/{productName}/{quantity}")
+	@PutMapping("/addProductToCart/{email}/{productName}/{quantity}")
 	public ResponseEntity<CartDTO> addProductToCart(@PathVariable("email") String email,
 			@PathVariable("productName") String productName, @PathVariable("quantity") int quantity)
 			throws InvalidInputDataException, EntityNotFoundException {
 		CartDTO newCart = cartService.addProductToCart(email, productName, quantity);
+		return new ResponseEntity<>(newCart, HttpStatus.CREATED);
+	}
+	
+	@PutMapping("/updateProductToCart/{email}/{productName}/{quantity}")
+	public ResponseEntity<CartDTO> updateProductToCart(@PathVariable("email") String email,
+			@PathVariable("productName") String productName, @PathVariable("quantity") int quantity)
+			throws InvalidInputDataException, EntityNotFoundException {
+		CartDTO newCart = cartService.updateProductFromCart(email, productName, quantity);
 		return new ResponseEntity<>(newCart, HttpStatus.CREATED);
 	}
 
@@ -66,12 +72,12 @@ public class CartController {
 		return new ResponseEntity<>(cartList, HttpStatus.OK);
 	}
 
-	@GetMapping("/getMostPopularProducts")
-	@ResponseBody
-	public ResponseEntity<Map<String, Integer>> getMostPopularProducts() throws EntityNotFoundException {
-		Map<String, Integer> productsMap = cartService.getMostPopularProducts();
-		return new ResponseEntity<>(productsMap, HttpStatus.OK);
-	}
+//	@GetMapping("/getMostPopularProducts")
+//	@ResponseBody
+//	public ResponseEntity<Map<String, Integer>> getMostPopularProducts() throws EntityNotFoundException {
+//		Map<String, Integer> productsMap = cartService.getMostPopularProducts();
+//		return new ResponseEntity<>(productsMap, HttpStatus.OK);
+//	}
 
 	@GetMapping("/getNumberOfActiveCarts")
 	@ResponseBody
@@ -80,12 +86,12 @@ public class CartController {
 		return new ResponseEntity<>(activeCarts, HttpStatus.OK);
 	}
 
-	@GetMapping("/getNumberOfUsersWithRequestedProductInCart/{productName}")
-	@ResponseBody
-	public ResponseEntity<Long> getNumberOfUsersWithRequestedProductInCart(
-			@PathVariable("productName") String productName) throws EntityNotFoundException {
-		Long nrOfUsers = cartService.getNumberOfUsersWithRequestedProductInCart(productName);
-		return new ResponseEntity<>(nrOfUsers, HttpStatus.OK);
-	}
+//	@GetMapping("/getNumberOfUsersWithRequestedProductInCart/{productName}")
+//	@ResponseBody
+//	public ResponseEntity<Long> getNumberOfUsersWithRequestedProductInCart(
+//			@PathVariable("productName") String productName) throws EntityNotFoundException {
+//		Long nrOfUsers = cartService.getNumberOfUsersWithRequestedProductInCart(productName);
+//		return new ResponseEntity<>(nrOfUsers, HttpStatus.OK);
+//	}
 
 }
