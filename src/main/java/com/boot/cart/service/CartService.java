@@ -87,7 +87,7 @@ public class CartService {
 		cart.setLastUpdatedOn(LocalDateTime.now());
 		cart.setTotal(cart.getTotal() + productTotal);
 
-		product.setProductStock(product.getProductStock() - quantity);
+		//product.setProductStock(product.getProductStock() - quantity);
 		productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
 
 		cartRepository.save(cart);
@@ -208,7 +208,7 @@ public class CartService {
 			cart.setLastUpdatedOn(LocalDateTime.now());
 			cart.setTotal(cart.getTotal() - productTotal);
 
-			product.setProductStock(product.getProductStock() + quantity);
+			//product.setProductStock(product.getProductStock() + quantity);
 
 			cartRepository.save(cart);
 			productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
