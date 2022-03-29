@@ -1,7 +1,7 @@
 {
   "name": "Eureka Cart Service",
   "description": "Eureka Cart Service project.",
-  "website": "https://github.com/GeorgeT88/com-cart-product-service",
+  "website": "https://github.com/GeorgeT88/com-boot-cart-service",
   "success_url": "/",
   "env": {
     "EUREKA_URL": {
