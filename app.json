@@ -1,0 +1,14 @@
+{
+  "name": "Eureka Cart Service",
+  "description": "Eureka Cart Service project.",
+  "website": "https://github.com/GeorgeT88/com-cart-product-service",
+  "success_url": "/",
+  "env": {
+    "EUREKA_URL": {
+      "description": "URL of the Eureka Server in the form http://<user>:<password>@<host>"
+    },
+    "DOMAIN_NAME": {
+      "description": "The domain name of this app. For example: <appname>.herokuapp.com"
+    }
+  }
+}
