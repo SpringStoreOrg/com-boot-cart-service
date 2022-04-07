@@ -27,6 +27,8 @@ public class CartController {
 	@Autowired
 	private CartService cartService;
 
+	//TODO for the validation of quantity path variable you could use javax.validation.constraints.Positive annotation. Also you could validate email using Email annotation.
+	//TODO also you could validate productName with @Size(min = 2) in order not to have empty strings  or single letters inputs
 	@PutMapping("/addProductToCart/{email}/{productName}/{quantity}")
 	public ResponseEntity<CartDTO> addProductToCart(@PathVariable("email") String email,
 			@PathVariable("productName") String productName, @PathVariable("quantity") int quantity)
