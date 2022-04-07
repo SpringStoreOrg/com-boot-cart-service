@@ -84,12 +84,14 @@ public class CartService {
 		}
 
 		cart.setProductList(productList);
+		//TODO you could do this inside a model method annotated with javax.persistence.PreUpdate. so this would be called and populated right before persisting the entity.
 		cart.setLastUpdatedOn(LocalDateTime.now());
 		cart.setTotal(cart.getTotal() + productTotal);
 
 		//product.setProductStock(product.getProductStock() - quantity);
 		productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
 
+		//TODO here you might have problems if saving cart changes fails. you should handle somehow the rollback on the stock.
 		cartRepository.save(cart);
 
 		return CartMapper.cartEntityToDto(cart);
@@ -117,6 +119,7 @@ public class CartService {
 
 		Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
 
+		//TODO try to do input validations before any calls to a service or db(ideally in the controller)
 		if (quantity <= 0) {
 			throw new InvalidInputDataException("Your Value has to be above 0!");
 		}
@@ -226,6 +229,7 @@ public class CartService {
 			throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
 		}
 
+		//TODO you might benefit from hibernate caching but you might also do the same DB query twice here(once when you want to see it's not null and 2nd time when you use it)
 		if (cartRepository.findByUser(user) != null) {
 			Cart cart = cartRepository.findByUser(user);
 
@@ -303,6 +307,7 @@ public class CartService {
 
 	public int getNumberOfActiveCarts() throws EntityNotFoundException {
 
+		//TODO you could retrieve only the carts number instead of retrieving all cart data just to have the cart count. this have large impact if you have a lot of carts or a lot of information for a cart.
 		return getAllCarts().size();
 	}
 
