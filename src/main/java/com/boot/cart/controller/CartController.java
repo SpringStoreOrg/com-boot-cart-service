@@ -3,6 +3,10 @@ package com.boot.cart.controller;
 
 import java.util.Set;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +34,11 @@ public class CartController {
 	//TODO for the validation of quantity path variable you could use javax.validation.constraints.Positive annotation. Also you could validate email using Email annotation.
 	//TODO also you could validate productName with @Size(min = 2) in order not to have empty strings  or single letters inputs
 	@PutMapping("/addProductToCart/{email}/{productName}/{quantity}")
-	public ResponseEntity<CartDTO> addProductToCart(@PathVariable("email") String email,
-			@PathVariable("productName") String productName, @PathVariable("quantity") int quantity)
+	public ResponseEntity<CartDTO> addProductToCart(@Email(message = "Invalid email!",regexp = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$") @PathVariable("email") String email,
+			@Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
+			@Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
 			throws InvalidInputDataException, EntityNotFoundException {
+
 		CartDTO newCart = cartService.addProductToCart(email, productName, quantity);
 		return new ResponseEntity<>(newCart, HttpStatus.CREATED);
 	}

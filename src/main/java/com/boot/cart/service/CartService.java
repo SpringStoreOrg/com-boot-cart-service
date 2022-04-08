@@ -47,9 +47,6 @@ public class CartService {
 		} catch (HttpClientErrorException.NotFound e) {
 			throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
 		}
-		if (quantity <= 0) {
-			throw new InvalidInputDataException("Your Value has to be above 0!");
-		}
 
 		if (product.getProductStock() == 0) {
 			throw new InvalidInputDataException("We are sorry, but currently: " + productName + " is out of order!");
