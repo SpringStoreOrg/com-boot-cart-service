@@ -85,7 +85,6 @@ public class CartService {
 		cart.setLastUpdatedOn(LocalDateTime.now());
 		cart.setTotal(cart.getTotal() + productTotal);
 
-		//product.setProductStock(product.getProductStock() - quantity);
 		productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
 
 		//TODO here you might have problems if saving cart changes fails. you should handle somehow the rollback on the stock.
@@ -278,44 +277,10 @@ public class CartService {
 		return CartMapper.cartEntityToDtoList(allCarts);
 	}
 
-//	public Map<String, Integer> getMostPopularProducts() throws EntityNotFoundException {
-//
-//		Set<CartDTO> allCarts = getAllCarts();
-//		HashMap<String, Integer> map = new HashMap<>();
-//
-//		for (CartDTO cart : allCarts) {
-//
-//			for (ProductDTO product : cart.getProductList()) {
-//
-//				if (!map.containsKey(product.getProductName())) {
-//					map.put(product.getProductName(), 1);
-//				} else {
-//					map.put(product.getProductName(), map.get(product.getProductName()) + 1);
-//				}
-//			}
-//		}
-//
-//		Map<String, Integer> topTenPoducts = map.entrySet().stream()
-//				.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(10)
-//				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-//
-//		return topTenPoducts;
-//	}
-
 	public int getNumberOfActiveCarts() throws EntityNotFoundException {
 
 		//TODO you could retrieve only the carts number instead of retrieving all cart data just to have the cart count. this have large impact if you have a lot of carts or a lot of information for a cart.
 		return getAllCarts().size();
 	}
-
-//	public long getNumberOfUsersWithRequestedProductInCart(String productName) throws EntityNotFoundException {
-//
-//		List<ProductDTO> result = getAllCarts().stream()
-//				.flatMap(
-//						s -> s.getProductList().stream().filter(p -> p.getProductName().equals(productName)).distinct())
-//				.collect(Collectors.toList());
-//
-//		return result.size();
-//	}
 
 }

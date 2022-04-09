@@ -7,6 +7,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
+import com.boot.cart.exception.EntityNotFoundException;
+import com.boot.cart.exception.InvalidInputDataException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.boot.cart.exception.EntityNotFoundException;
-import com.boot.cart.exception.InvalidInputDataException;
+
 import com.boot.cart.service.CartService;
 import com.boot.services.dto.CartDTO;
 
@@ -80,26 +81,11 @@ public class CartController {
 		return new ResponseEntity<>(cartList, HttpStatus.OK);
 	}
 
-//	@GetMapping("/getMostPopularProducts")
-//	@ResponseBody
-//	public ResponseEntity<Map<String, Integer>> getMostPopularProducts() throws EntityNotFoundException {
-//		Map<String, Integer> productsMap = cartService.getMostPopularProducts();
-//		return new ResponseEntity<>(productsMap, HttpStatus.OK);
-//	}
-
 	@GetMapping("/getNumberOfActiveCarts")
 	@ResponseBody
 	public ResponseEntity<Integer> getNumberOfActiveCarts() throws EntityNotFoundException {
 		Integer activeCarts = cartService.getNumberOfActiveCarts();
 		return new ResponseEntity<>(activeCarts, HttpStatus.OK);
 	}
-
-//	@GetMapping("/getNumberOfUsersWithRequestedProductInCart/{productName}")
-//	@ResponseBody
-//	public ResponseEntity<Long> getNumberOfUsersWithRequestedProductInCart(
-//			@PathVariable("productName") String productName) throws EntityNotFoundException {
-//		Long nrOfUsers = cartService.getNumberOfUsersWithRequestedProductInCart(productName);
-//		return new ResponseEntity<>(nrOfUsers, HttpStatus.OK);
-//	}
 
 }
