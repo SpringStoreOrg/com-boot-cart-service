@@ -11,14 +11,14 @@ import com.boot.services.dto.UserDTO;
 public class UserServiceClient {
 
 	@Autowired
-	private RestTemplate restTemplate;
+	private RestTemplate userServiceRestTemplate;
 
 	public UserDTO callGetUserByEmail(String email) {
 
-		return restTemplate.getForEntity(Constants.GET_USER_BY_EMAIL + email, UserDTO.class).getBody();
+		return userServiceRestTemplate.getForEntity(Constants.GET_USER_BY_EMAIL + email, UserDTO.class).getBody();
 	}
 
 	public void callUpdateUser(String userName, UserDTO user) {
-		restTemplate.exchange(Constants.UPDATE_USER + userName, HttpMethod.PUT, new HttpEntity<>(user), String.class);
+		userServiceRestTemplate.exchange(Constants.UPDATE_USER + userName, HttpMethod.PUT, new HttpEntity<>(user), String.class);
 	}
 }

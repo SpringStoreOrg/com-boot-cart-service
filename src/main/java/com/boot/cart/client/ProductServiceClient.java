@@ -14,23 +14,24 @@ import com.boot.services.dto.ProductDTO;
 public class ProductServiceClient {
 
 	@Autowired
-	private RestTemplate restTemplate;
+	private RestTemplate productServiceRestTemplate;
 
 	public List<ProductDTO> callGetAllProducts() {
 
-		ProductDTO[] productArray = restTemplate.getForEntity(Constants.GET_ALL_PRODUCTS, ProductDTO[].class).getBody();
+		ProductDTO[] productArray = productServiceRestTemplate.getForEntity(Constants.GET_ALL_PRODUCTS, ProductDTO[].class)
+				.getBody();
 
 		return Arrays.asList(productArray);
 	}
 
 	public ProductDTO callGetProductByProductName(String productName) {
 
-		return restTemplate.getForEntity(Constants.GET_PRODUCT_BY_PRODUCT_NAME + productName, ProductDTO.class)
+		return productServiceRestTemplate.getForEntity(Constants.GET_PRODUCT_BY_PRODUCT_NAME, ProductDTO.class)
 				.getBody();
 	}
 
 	public void callUpdateProductByProductName(String productName, ProductDTO productDto) {
-		restTemplate.exchange(Constants.UPDATE_PRODUCT_BY_PRODUCT_NAME + productName, HttpMethod.PUT,
+		productServiceRestTemplate.exchange(Constants.UPDATE_PRODUCT_BY_PRODUCT_NAME + productName, HttpMethod.PUT,
 				new HttpEntity<>(productDto), String.class);
 	}
 }
