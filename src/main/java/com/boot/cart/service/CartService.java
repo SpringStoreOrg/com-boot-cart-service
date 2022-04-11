@@ -29,258 +29,256 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class CartService {
 
-	@Autowired
-	CartRepository cartRepository;
+    @Autowired
+    CartRepository cartRepository;
 
-	@Autowired
-	ProductServiceClient productServiceClient;
+    @Autowired
+    ProductServiceClient productServiceClient;
 
-	@Autowired
-	UserServiceClient userServiceClient;
+    @Autowired
+    UserServiceClient userServiceClient;
 
-	public CartDTO addProductToCart(String email, String productName, int quantity)
-			throws InvalidInputDataException, EntityNotFoundException {
-		log.info("addProductToCart - process started");
-		Product product;
-		try {
-			product = ProductMapper.DtoToProductEntity(productServiceClient.callGetProductByProductName(productName));
-		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
-		}
+    public CartDTO addProductToCart(String email, String productName, int quantity)
+            throws InvalidInputDataException, EntityNotFoundException {
+        log.info("addProductToCart - process started");
+        Product product;
+        try {
+            product = ProductMapper.DtoToProductEntity(productServiceClient.callGetProductByProductName(productName));
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
+        }
 
-		if (product.getProductStock() == 0) {
-			throw new InvalidInputDataException("We are sorry, but currently: " + productName + " is out of order!");
-		}
+        if (product.getProductStock() == 0) {
+            throw new InvalidInputDataException("We are sorry, but currently: " + productName + " is out of order!");
+        }
 
-		if (product.getProductStock() < quantity) {
-			throw new InvalidInputDataException("You can not add more than: " + product.getProductStock() + " "
-					+ productName + " Products to your shopping cart!");
-		}
-		User user;
-		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
-		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-		}
-		Cart cart = cartRepository.findByUser(user);
+        if (product.getProductStock() < quantity) {
+            throw new InvalidInputDataException("You can not add more than: " + product.getProductStock() + " "
+                    + productName + " Products to your shopping cart!");
+        }
+        User user;
+        try {
+            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
+        }
+        Cart cart = cartRepository.findByUser(user);
 
-		List<Product> productList;
-		double productTotal = 0;
-		if (cart == null) {
-			cart = new Cart();
-			productList = new ArrayList<>();
-		} else {
-			productList = cart.getProductList();
-		}
+        List<Product> productList;
+        double productTotal = 0;
+        if (cart == null) {
+            cart = new Cart();
+            productList = new ArrayList<>();
+        } else {
+            productList = cart.getProductList();
+        }
 
-		cart.setUser(user);
+        cart.setUser(user);
 
-		for (int i = 0; i < quantity; i++) {
-			productList.add(product);
-			productTotal = product.getProductPrice() + productTotal;
-		}
+        for (int i = 0; i < quantity; i++) {
+            productList.add(product);
+            productTotal = product.getProductPrice() + productTotal;
+        }
 
-		cart.setProductList(productList);
-		//TODO you could do this inside a model method annotated with javax.persistence.PreUpdate. so this would be called and populated right before persisting the entity.
-		cart.setLastUpdatedOn(LocalDateTime.now());
-		cart.setTotal(cart.getTotal() + productTotal);
+        cart.setProductList(productList);
+        //TODO you could do this inside a model method annotated with javax.persistence.PreUpdate. so this would be called and populated right before persisting the entity.
+        cart.setLastUpdatedOn(LocalDateTime.now());
+        cart.setTotal(cart.getTotal() + productTotal);
 
-		productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
+        productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
 
-		//TODO here you might have problems if saving cart changes fails. you should handle somehow the rollback on the stock.
-		cartRepository.save(cart);
+        //TODO here you might have problems if saving cart changes fails. you should handle somehow the rollback on the stock.
+        cartRepository.save(cart);
 
-		return CartMapper.cartEntityToDto(cart);
+        return CartMapper.cartEntityToDto(cart);
 
-	}
+    }
 
-	public CartDTO updateProductFromCart(String userName, String productName, int quantity)
-			throws InvalidInputDataException, EntityNotFoundException {
+    public CartDTO updateProductFromCart(String userName, String productName, int quantity)
+            throws InvalidInputDataException, EntityNotFoundException {
 
-		Product product;
-		try {
-			product = ProductMapper.DtoToProductEntity(productServiceClient.callGetProductByProductName(productName));
-		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
-		}
+        Product product;
+        try {
+            product = ProductMapper.DtoToProductEntity(productServiceClient.callGetProductByProductName(productName));
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
+        }
 
-		User user;
-		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
-		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
-		}
-		Cart cart = cartRepository.findByUser(user);
-		List<Product> productList = cart.getProductList();
+        User user;
+        try {
+            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
+        }
+        Cart cart = cartRepository.findByUser(user);
+        List<Product> productList = cart.getProductList();
 
-		Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
+        Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
 
-		//TODO try to do input validations before any calls to a service or db(ideally in the controller)
-		if (quantity <= 0) {
-			throw new InvalidInputDataException("Your Value has to be above 0!");
-		}
+        //TODO try to do input validations before any calls to a service or db(ideally in the controller)
+        if (quantity <= 0) {
+            throw new InvalidInputDataException("Your Value has to be above 0!");
+        }
 
-		if (productsInCart == 0) {
-			throw new InvalidInputDataException(
-					"You currently have " + productsInCart + " Products: " + productName + " in cart!");
-		}
+        if (productsInCart == 0) {
+            throw new InvalidInputDataException(
+                    "You currently have " + productsInCart + " Products: " + productName + " in cart!");
+        }
 
 
-			double productTotalAdd = 0;
-			double productTotalRemove = 0;
-			
-			for (int i = 0; i < productsInCart; i++) {
-				productList.remove(product);
-				productTotalAdd = product.getProductPrice() + productTotalAdd;
-			}
-			cart.setTotal(cart.getTotal() - productTotalAdd);
-		//	product.setProductStock(product.getProductStock() + quantity);
-			
-			
-			for (int i = 0; i < quantity; i++) {
-				productList.add(product);
-				productTotalRemove = product.getProductPrice() + productTotalRemove;
-			}
-			cart.setTotal(cart.getTotal() + productTotalRemove);
-		//	product.setProductStock(product.getProductStock() - quantity);
-			
-			cart.setUser(user);
+        double productTotalAdd = 0;
+        double productTotalRemove = 0;
 
-			cart.setProductList(productList);
-			cart.setLastUpdatedOn(LocalDateTime.now());
-		
+        for (int i = 0; i < productsInCart; i++) {
+            productList.remove(product);
+            productTotalAdd = product.getProductPrice() + productTotalAdd;
+        }
+        cart.setTotal(cart.getTotal() - productTotalAdd);
+        //	product.setProductStock(product.getProductStock() + quantity);
 
-			
 
-			cartRepository.save(cart);
-			productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
+        for (int i = 0; i < quantity; i++) {
+            productList.add(product);
+            productTotalRemove = product.getProductPrice() + productTotalRemove;
+        }
+        cart.setTotal(cart.getTotal() + productTotalRemove);
+        //	product.setProductStock(product.getProductStock() - quantity);
 
-			return CartMapper.cartEntityToDto(cart);
+        cart.setUser(user);
 
-		
-	}
+        cart.setProductList(productList);
+        cart.setLastUpdatedOn(LocalDateTime.now());
 
-	public CartDTO removeProductFromCart(String userName, String productName, int quantity)
-			throws InvalidInputDataException, EntityNotFoundException {
 
-		Product product;
-		try {
-			product = ProductMapper.DtoToProductEntity(productServiceClient.callGetProductByProductName(productName));
-		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
-		}
+        cartRepository.save(cart);
+        productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
 
-		User user;
-		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
-		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
-		}
-		Cart cart = cartRepository.findByUser(user);
-		List<Product> productList = cart.getProductList();
+        return CartMapper.cartEntityToDto(cart);
 
-		Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
 
-		if (quantity <= 0) {
-			throw new InvalidInputDataException("Your Value has to be above 0!");
-		}
+    }
 
-		if (productsInCart == 0) {
-			throw new InvalidInputDataException(
-					"You currently have " + productsInCart + " Products: " + productName + " in cart!");
-		}
+    public CartDTO removeProductFromCart(String userName, String productName, int quantity)
+            throws InvalidInputDataException, EntityNotFoundException {
 
-		if (Math.toIntExact(productsInCart) < quantity) {
-			throw new InvalidInputDataException("You cannot remove more than " + productsInCart + " " + productName
-					+ " Products from the shopping cart!");
-		} else {
-			double productTotal = 0;
+        Product product;
+        try {
+            product = ProductMapper.DtoToProductEntity(productServiceClient.callGetProductByProductName(productName));
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
+        }
 
-			for (int i = 0; i < quantity; i++) {
-				productList.remove(product);
-				productTotal = product.getProductPrice() + productTotal;
-			}
+        User user;
+        try {
+            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
+        }
+        Cart cart = cartRepository.findByUser(user);
+        List<Product> productList = cart.getProductList();
 
-			cart.setUser(user);
+        Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
 
-			cart.setProductList(productList);
-			cart.setLastUpdatedOn(LocalDateTime.now());
-			cart.setTotal(cart.getTotal() - productTotal);
+        if (quantity <= 0) {
+            throw new InvalidInputDataException("Your Value has to be above 0!");
+        }
 
-			//product.setProductStock(product.getProductStock() + quantity);
+        if (productsInCart == 0) {
+            throw new InvalidInputDataException(
+                    "You currently have " + productsInCart + " Products: " + productName + " in cart!");
+        }
 
-			cartRepository.save(cart);
-			productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
+        if (Math.toIntExact(productsInCart) < quantity) {
+            throw new InvalidInputDataException("You cannot remove more than " + productsInCart + " " + productName
+                    + " Products from the shopping cart!");
+        } else {
+            double productTotal = 0;
 
-			return CartMapper.cartEntityToDto(cart);
-		}
-	}
+            for (int i = 0; i < quantity; i++) {
+                productList.remove(product);
+                productTotal = product.getProductPrice() + productTotal;
+            }
 
-	public void deleteCartByUserName(String userName) throws InvalidInputDataException, EntityNotFoundException {
+            cart.setUser(user);
 
-		User user;
-		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
-		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
-		}
+            cart.setProductList(productList);
+            cart.setLastUpdatedOn(LocalDateTime.now());
+            cart.setTotal(cart.getTotal() - productTotal);
 
-		//TODO you might benefit from hibernate caching but you might also do the same DB query twice here(once when you want to see it's not null and 2nd time when you use it)
-		if (cartRepository.findByUser(user) != null) {
-			Cart cart = cartRepository.findByUser(user);
+            //product.setProductStock(product.getProductStock() + quantity);
 
-			List<Product> prodList = cart.getProductList();
+            cartRepository.save(cart);
+            productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
 
-			Iterator<Product> iter = prodList.iterator();
+            return CartMapper.cartEntityToDto(cart);
+        }
+    }
 
-			while (iter.hasNext()) {
-				Product product = iter.next();
-				iter.remove();
-				log.info(product.getProductName() + " - succesfully deleted from Product List");
-				product.setProductStock(product.getProductStock() + 1);
-				log.info(product.getProductName() + " Productstock succesfully updated! currently "
-						+ product.getProductStock() + " products in stock!");
+    public void deleteCartByUserName(String userName) throws InvalidInputDataException, EntityNotFoundException {
 
-				productServiceClient.callUpdateProductByProductName(product.getProductName(),
-						ProductMapper.ProductEntityToDto(product));
+        User user;
+        try {
+            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
+        }
 
-			}
-			cartRepository.delete(cart);
-			log.info("Cart succesfully deleted!");
-		}
-		log.info("Cart is empty (null)!");
-	}
+        //TODO you might benefit from hibernate caching but you might also do the same DB query twice here(once when you want to see it's not null and 2nd time when you use it)
+        if (cartRepository.findByUser(user) != null) {
+            Cart cart = cartRepository.findByUser(user);
 
-	public CartDTO getCartByEmail(String email) throws EntityNotFoundException {
+            List<Product> prodList = cart.getProductList();
 
-		User user;
-		try {
-			user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
+            Iterator<Product> iter = prodList.iterator();
 
-		} catch (HttpClientErrorException.NotFound e) {
-			throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-		}
+            while (iter.hasNext()) {
+                Product product = iter.next();
+                iter.remove();
+                log.info(product.getProductName() + " - succesfully deleted from Product List");
+                product.setProductStock(product.getProductStock() + 1);
+                log.info(product.getProductName() + " Productstock succesfully updated! currently "
+                        + product.getProductStock() + " products in stock!");
 
-		if (cartRepository.findByUser(user) != null) {
-			Cart cart = cartRepository.findByUser(user);
+                productServiceClient.callUpdateProductByProductName(product.getProductName(),
+                        ProductMapper.ProductEntityToDto(product));
 
-			return CartMapper.cartEntityToDto(cart);
-		} else
-			return null;
-	}
+            }
+            cartRepository.delete(cart);
+            log.info("Cart succesfully deleted!");
+        }
+        log.info("Cart is empty (null)!");
+    }
 
-	public Set<CartDTO> getAllCarts() throws EntityNotFoundException {
-		if (cartRepository.findAll().isEmpty()) {
-			throw new EntityNotFoundException("No cart found in the Database!");
-		}
-		List<Cart> allCarts = cartRepository.findAll();
-		return CartMapper.cartEntityToDtoList(allCarts);
-	}
+    public CartDTO getCartByEmail(String email) throws EntityNotFoundException {
 
-	public int getNumberOfActiveCarts() throws EntityNotFoundException {
+        User user;
+        try {
+            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
 
-		//TODO you could retrieve only the carts number instead of retrieving all cart data just to have the cart count. this have large impact if you have a lot of carts or a lot of information for a cart.
-		return getAllCarts().size();
-	}
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
+        }
+
+        if (cartRepository.findByUser(user) != null) {
+            Cart cart = cartRepository.findByUser(user);
+
+            return CartMapper.cartEntityToDto(cart);
+        } else
+            return null;
+    }
+
+    public Set<CartDTO> getAllCarts() throws EntityNotFoundException {
+        if (cartRepository.findAll().isEmpty()) {
+            throw new EntityNotFoundException("No cart found in the Database!");
+        }
+        List<Cart> allCarts = cartRepository.findAll();
+        return CartMapper.cartEntityToDtoList(allCarts);
+    }
+
+    public int getNumberOfActiveCarts() throws EntityNotFoundException {
+
+        //TODO you could retrieve only the carts number instead of retrieving all cart data just to have the cart count. this have large impact if you have a lot of carts or a lot of information for a cart.
+        return getAllCarts().size();
+    }
 
 }

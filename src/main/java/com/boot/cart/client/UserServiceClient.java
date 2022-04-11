@@ -10,15 +10,15 @@ import com.boot.services.dto.UserDTO;
 
 public class UserServiceClient {
 
-	@Autowired
-	private RestTemplate userServiceRestTemplate;
+    @Autowired
+    private RestTemplate userServiceRestTemplate;
 
-	public UserDTO callGetUserByEmail(String email) {
+    public UserDTO callGetUserByEmail(String email) {
 
-		return userServiceRestTemplate.getForEntity(Constants.GET_USER_BY_EMAIL + email, UserDTO.class).getBody();
-	}
+        return userServiceRestTemplate.getForEntity(Constants.GET_USER_BY_EMAIL + email, UserDTO.class).getBody();
+    }
 
-	public void callUpdateUser(String userName, UserDTO user) {
-		userServiceRestTemplate.exchange(Constants.UPDATE_USER + userName, HttpMethod.PUT, new HttpEntity<>(user), String.class);
-	}
+    public void callUpdateUser(String userName, UserDTO user) {
+        userServiceRestTemplate.exchange(Constants.UPDATE_USER + userName, HttpMethod.PUT, new HttpEntity<>(user), String.class);
+    }
 }

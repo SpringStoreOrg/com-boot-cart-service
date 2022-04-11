@@ -25,38 +25,38 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnProperty(name = "spring.enable.scheduling")
 public class PurgeService {
 
-	@Autowired
-	CartRepository cartRepository;
-	
-	@Autowired
-	ProductServiceClient productServiceClient;
+    @Autowired
+    CartRepository cartRepository;
 
-	@Scheduled(cron = "${cron.expression}", zone = "Europe/Paris")
-	public void emptyProductsFromCart() {
-		Set<Cart> cartSet = cartRepository.findByLastUpdatedOnBefore(LocalDateTime.now().minusHours(3));
+    @Autowired
+    ProductServiceClient productServiceClient;
 
-		for (Cart cart : cartSet) {
+    @Scheduled(cron = "${cron.expression}", zone = "Europe/Paris")
+    public void emptyProductsFromCart() {
+        Set<Cart> cartSet = cartRepository.findByLastUpdatedOnBefore(LocalDateTime.now().minusHours(3));
 
-			List<Product> prodList = cart.getProductList();
+        for (Cart cart : cartSet) {
 
-			Iterator<Product> iter = prodList.iterator();
+            List<Product> prodList = cart.getProductList();
 
-			while (iter.hasNext()) {
-				Product product = iter.next();
-				iter.remove();
-				log.info(product.getProductName() + " - succesfully deleted from Product List");
-				product.setProductStock(product.getProductStock() + 1);
-				log.info(product.getProductName() + " Productstock succesfully updated! currently "
-						+ product.getProductStock() + " products in stock!");
+            Iterator<Product> iter = prodList.iterator();
 
-				productServiceClient.callUpdateProductByProductName(product.getProductName(),
-						ProductMapper.ProductEntityToDto(product));
+            while (iter.hasNext()) {
+                Product product = iter.next();
+                iter.remove();
+                log.info(product.getProductName() + " - succesfully deleted from Product List");
+                product.setProductStock(product.getProductStock() + 1);
+                log.info(product.getProductName() + " Productstock succesfully updated! currently "
+                        + product.getProductStock() + " products in stock!");
 
-			}
-			cartRepository.delete(cart);
-			log.info("Cart succesfully deleted!");
-		}
+                productServiceClient.callUpdateProductByProductName(product.getProductName(),
+                        ProductMapper.ProductEntityToDto(product));
 
-	}
+            }
+            cartRepository.delete(cart);
+            log.info("Cart succesfully deleted!");
+        }
+
+    }
 
 }

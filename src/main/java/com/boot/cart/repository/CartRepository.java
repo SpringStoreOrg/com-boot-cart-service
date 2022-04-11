@@ -12,7 +12,7 @@ import com.boot.services.model.User;
 @Repository
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
-	Cart findByUser(User user);
+    Cart findByUser(User user);
 
-	Set<Cart> findByLastUpdatedOnBefore(LocalDateTime date);
+    Set<Cart> findByLastUpdatedOnBefore(LocalDateTime date);
 }

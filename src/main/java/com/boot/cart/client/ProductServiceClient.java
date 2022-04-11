@@ -13,25 +13,25 @@ import com.boot.services.dto.ProductDTO;
 
 public class ProductServiceClient {
 
-	@Autowired
-	private RestTemplate productServiceRestTemplate;
+    @Autowired
+    private RestTemplate productServiceRestTemplate;
 
-	public List<ProductDTO> callGetAllProducts() {
+    public List<ProductDTO> callGetAllProducts() {
 
-		ProductDTO[] productArray = productServiceRestTemplate.getForEntity(Constants.GET_ALL_PRODUCTS, ProductDTO[].class)
-				.getBody();
+        ProductDTO[] productArray = productServiceRestTemplate.getForEntity(Constants.GET_ALL_PRODUCTS, ProductDTO[].class)
+                .getBody();
 
-		return Arrays.asList(productArray);
-	}
+        return Arrays.asList(productArray);
+    }
 
-	public ProductDTO callGetProductByProductName(String productName) {
+    public ProductDTO callGetProductByProductName(String productName) {
 
-		return productServiceRestTemplate.getForEntity(Constants.GET_PRODUCT_BY_PRODUCT_NAME, ProductDTO.class)
-				.getBody();
-	}
+        return productServiceRestTemplate.getForEntity(Constants.GET_PRODUCT_BY_PRODUCT_NAME, ProductDTO.class)
+                .getBody();
+    }
 
-	public void callUpdateProductByProductName(String productName, ProductDTO productDto) {
-		productServiceRestTemplate.exchange(Constants.UPDATE_PRODUCT_BY_PRODUCT_NAME + productName, HttpMethod.PUT,
-				new HttpEntity<>(productDto), String.class);
-	}
+    public void callUpdateProductByProductName(String productName, ProductDTO productDto) {
+        productServiceRestTemplate.exchange(Constants.UPDATE_PRODUCT_BY_PRODUCT_NAME + productName, HttpMethod.PUT,
+                new HttpEntity<>(productDto), String.class);
+    }
 }
