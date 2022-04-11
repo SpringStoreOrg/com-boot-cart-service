@@ -275,10 +275,8 @@ public class CartService {
         return CartMapper.cartEntityToDtoList(allCarts);
     }
 
-    public int getNumberOfActiveCarts() throws EntityNotFoundException {
-
-        //TODO you could retrieve only the carts number instead of retrieving all cart data just to have the cart count. this have large impact if you have a lot of carts or a lot of information for a cart.
-        return getAllCarts().size();
+    public long getNumberOfActiveCarts() {
+        return cartRepository.count();
     }
 
 }

@@ -32,8 +32,6 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    //TODO for the validation of quantity path variable you could use javax.validation.constraints.Positive annotation. Also you could validate email using Email annotation.
-    //TODO also you could validate productName with @Size(min = 2) in order not to have empty strings  or single letters inputs
     @PutMapping("/addProductToCart/{email}/{productName}/{quantity}")
     public ResponseEntity<CartDTO> addProductToCart(@Email(message = "Invalid email!", regexp = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$") @PathVariable("email") String email,
                                                     @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
@@ -45,23 +43,25 @@ public class CartController {
     }
 
     @PutMapping("/updateProductToCart/{email}/{productName}/{quantity}")
-    public ResponseEntity<CartDTO> updateProductToCart(@PathVariable("email") String email,
-                                                       @PathVariable("productName") String productName, @PathVariable("quantity") int quantity)
+    public ResponseEntity<CartDTO> updateProductToCart(@Email(message = "Invalid email!", regexp = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$") @PathVariable("email") String email,
+                                                       @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
+                                                       @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
         CartDTO newCart = cartService.updateProductFromCart(email, productName, quantity);
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 
     @PutMapping("/removeProductFromCart/{userName}/{productName}/{quantity}")
-    public ResponseEntity<CartDTO> removeProductfromCart(@PathVariable("userName") String userName,
-                                                         @PathVariable("productName") String productName, @PathVariable("quantity") int quantity)
+    public ResponseEntity<CartDTO> removeProductfromCart(@Size(min = 2, message = "Min User Name size is 2!") @PathVariable("userName") String userName,
+                                                         @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
+                                                         @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
         CartDTO newCart = cartService.removeProductFromCart(userName, productName, quantity);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 
     @DeleteMapping("/deleteCartByUserName/{userName}")
-    public ResponseEntity<CartDTO> deleteUserByUserName(@PathVariable("userName") String userName)
+    public ResponseEntity<CartDTO> deleteUserByUserName(@Size(min = 2, message = "Min User Name size is 2!") @PathVariable("userName") String userName)
             throws EntityNotFoundException, InvalidInputDataException {
         cartService.deleteCartByUserName(userName);
         return new ResponseEntity<>(HttpStatus.OK);
@@ -69,7 +69,7 @@ public class CartController {
 
     @GetMapping("/getCartByEmail")
     @ResponseBody
-    public ResponseEntity<CartDTO> getCartByEmail(@RequestParam String email) throws EntityNotFoundException {
+    public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$") @RequestParam String email) throws EntityNotFoundException {
         CartDTO newCart = cartService.getCartByEmail(email);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
@@ -83,8 +83,8 @@ public class CartController {
 
     @GetMapping("/getNumberOfActiveCarts")
     @ResponseBody
-    public ResponseEntity<Integer> getNumberOfActiveCarts() throws EntityNotFoundException {
-        Integer activeCarts = cartService.getNumberOfActiveCarts();
+    public ResponseEntity<Long> getNumberOfActiveCarts(){
+        Long activeCarts = cartService.getNumberOfActiveCarts();
         return new ResponseEntity<>(activeCarts, HttpStatus.OK);
     }
 
