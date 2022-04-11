@@ -114,12 +114,7 @@ public class CartService {
         List<Product> productList = cart.getProductList();
 
         Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
-
-        //TODO try to do input validations before any calls to a service or db(ideally in the controller)
-        if (quantity <= 0) {
-            throw new InvalidInputDataException("Your Value has to be above 0!");
-        }
-
+        
         if (productsInCart == 0) {
             throw new InvalidInputDataException(
                     "You currently have " + productsInCart + " Products: " + productName + " in cart!");
