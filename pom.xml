@@ -85,14 +85,14 @@
 		<dependency>
 			<groupId>com.github.GeorgeT88</groupId>
 			<artifactId>commons-datamodel-entity</artifactId>
-			<version>version-1.0</version>
+			<version>release-1.1</version>
 		</dependency>
 
 		<!-- Datamodel DTO -->
 		<dependency>
 			<groupId>com.github.GeorgeT88</groupId>
 			<artifactId>commons-datamodel-dto</artifactId>
-			<version>version-1.0</version>
+			<version>release-1.1</version>
 		</dependency>
 	</dependencies>
 

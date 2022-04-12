@@ -81,8 +81,6 @@ public class CartService {
         }
 
         cart.setProductList(productList);
-        //TODO you could do this inside a model method annotated with javax.persistence.PreUpdate. so this would be called and populated right before persisting the entity.
-        cart.setLastUpdatedOn(LocalDateTime.now());
         cart.setTotal(cart.getTotal() + productTotal);
 
         productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
