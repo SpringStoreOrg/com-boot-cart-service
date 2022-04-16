@@ -26,12 +26,14 @@ import com.boot.cart.service.CartService;
 import com.boot.services.dto.CartDTO;
 
 @Controller
+//this RequestMapping annotation does not add any value as you don't have any method without a mapping annotation
 @RequestMapping("/")
 public class CartController {
 
     @Autowired
     private CartService cartService;
 
+    //TODO you could extract email regex as a constant in order not to have it repeated 3 times
     @PutMapping("/addProductToCart/{email}/{productName}/{quantity}")
     public ResponseEntity<CartDTO> addProductToCart(@Email(message = "Invalid email!", regexp = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$") @PathVariable("email") String email,
                                                     @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
