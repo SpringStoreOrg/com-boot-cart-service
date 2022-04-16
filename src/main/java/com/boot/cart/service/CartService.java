@@ -77,6 +77,7 @@ public class CartService {
 
         for (int i = 0; i < quantity; i++) {
             productList.add(product);
+            //TODO you could use also use += operator here
             productTotal = product.getProductPrice() + productTotal;
         }
 
@@ -122,6 +123,7 @@ public class CartService {
         double productTotalAdd = 0;
         double productTotalRemove = 0;
 
+        //this can be optimezed by using removeAll and by multiplying the price with the quantity
         for (int i = 0; i < productsInCart; i++) {
             productList.remove(product);
             productTotalAdd = product.getProductPrice() + productTotalAdd;
@@ -140,6 +142,7 @@ public class CartService {
         cart.setUser(user);
 
         cart.setProductList(productList);
+        //TODO this can be moved to PreUpdate method
         cart.setLastUpdatedOn(LocalDateTime.now());
 
 
@@ -172,6 +175,7 @@ public class CartService {
 
         Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
 
+        //this can be dropped as you've already validated it
         if (quantity <= 0) {
             throw new InvalidInputDataException("Your Value has to be above 0!");
         }
@@ -227,6 +231,7 @@ public class CartService {
             while (iter.hasNext()) {
                 Product product = iter.next();
                 iter.remove();
+                //it is nicer to use parameterized logging instead of string concatenation 
                 log.info(product.getProductName() + " - succesfully deleted from Product List");
                 product.setProductStock(product.getProductStock() + 1);
                 log.info(product.getProductName() + " Productstock succesfully updated! currently "
