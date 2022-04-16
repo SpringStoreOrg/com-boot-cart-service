@@ -33,6 +33,7 @@ public class PurgeService {
 
     @Scheduled(cron = "${cron.expression}", zone = "Europe/Paris")
     public void emptyProductsFromCart() {
+        //I think that this should be linked with user session. Maybe the user has not done any operation on the cart but he is having a hard time choosing the next product.
         Set<Cart> cartSet = cartRepository.findByLastUpdatedOnBefore(LocalDateTime.now().minusHours(3));
 
         for (Cart cart : cartSet) {
@@ -49,6 +50,7 @@ public class PurgeService {
                 log.info(product.getProductName() + " Productstock succesfully updated! currently "
                         + product.getProductStock() + " products in stock!");
 
+                //you could optimize this a little by doing one operation for multiple products of same type from the same cart
                 productServiceClient.callUpdateProductByProductName(product.getProductName(),
                         ProductMapper.ProductEntityToDto(product));
 
