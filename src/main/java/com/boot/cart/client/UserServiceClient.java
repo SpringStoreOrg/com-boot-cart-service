@@ -15,6 +15,7 @@ public class UserServiceClient {
 
     public UserDTO callGetUserByEmail(String email) {
 
+        //TODO you could use getForEntity with uriVariables instead of string concatenation
         return userServiceRestTemplate.getForEntity(Constants.GET_USER_BY_EMAIL + email, UserDTO.class).getBody();
     }
 
