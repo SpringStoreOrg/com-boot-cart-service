@@ -221,11 +221,10 @@ public class CartService {
             while (iter.hasNext()) {
                 Product product = iter.next();
                 iter.remove();
-                //it is nicer to use parameterized logging instead of string concatenation 
-                log.info(product.getProductName() + " - succesfully deleted from Product List");
+
+                log.info("{} succesfully deleted from Product List",product.getProductName());
                 product.setProductStock(product.getProductStock() + 1);
-                log.info(product.getProductName() + " Productstock succesfully updated! currently "
-                        + product.getProductStock() + " products in stock!");
+                log.info("{} Productstock succesfully updated! currently {} products in stock!",product.getProductName(), product.getProductStock());
 
                 productServiceClient.callUpdateProductByProductName(product.getProductName(),
                         ProductMapper.ProductEntityToDto(product));
