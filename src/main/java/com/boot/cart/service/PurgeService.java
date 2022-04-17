@@ -45,10 +45,9 @@ public class PurgeService {
             while (iter.hasNext()) {
                 Product product = iter.next();
                 iter.remove();
-                log.info(product.getProductName() + " - succesfully deleted from Product List");
+                log.info( "{} succesfully deleted from Product List",product.getProductName());
                 product.setProductStock(product.getProductStock() + 1);
-                log.info(product.getProductName() + " Productstock succesfully updated! currently "
-                        + product.getProductStock() + " products in stock!");
+                log.info("{}  Productstock succesfully updated! currently {} products in stock!",product.getProductName(),product.getProductStock());
 
                 //you could optimize this a little by doing one operation for multiple products of same type from the same cart
                 productServiceClient.callUpdateProductByProductName(product.getProductName(),
