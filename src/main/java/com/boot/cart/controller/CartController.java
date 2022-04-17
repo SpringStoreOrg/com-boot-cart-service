@@ -9,6 +9,7 @@ import javax.validation.constraints.Size;
 
 import com.boot.cart.exception.EntityNotFoundException;
 import com.boot.cart.exception.InvalidInputDataException;
+import com.boot.cart.util.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +31,9 @@ public class CartController {
 
     @Autowired
     private CartService cartService;
-
-    //TODO you could extract email regex as a constant in order not to have it repeated 3 times
+    
     @PutMapping("/addProductToCart/{email}/{productName}/{quantity}")
-    public ResponseEntity<CartDTO> addProductToCart(@Email(message = "Invalid email!", regexp = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$") @PathVariable("email") String email,
+    public ResponseEntity<CartDTO> addProductToCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
                                                     @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
                                                     @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
@@ -43,7 +43,7 @@ public class CartController {
     }
 
     @PutMapping("/updateProductToCart/{email}/{productName}/{quantity}")
-    public ResponseEntity<CartDTO> updateProductToCart(@Email(message = "Invalid email!", regexp = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$") @PathVariable("email") String email,
+    public ResponseEntity<CartDTO> updateProductToCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
                                                        @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
                                                        @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
@@ -69,7 +69,7 @@ public class CartController {
 
     @GetMapping("/getCartByEmail")
     @ResponseBody
-    public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$") @RequestParam String email) throws EntityNotFoundException {
+    public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam String email) throws EntityNotFoundException {
         CartDTO newCart = cartService.getCartByEmail(email);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }

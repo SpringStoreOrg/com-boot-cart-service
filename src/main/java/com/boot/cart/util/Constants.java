@@ -9,5 +9,7 @@ public class Constants {
     public static final String UPDATE_PRODUCT_BY_PRODUCT_NAME = "/updateProductByProductName/";
     public static final String GET_ALL_PRODUCTS = "/getAllProducts";
 
+    //Regular expression used for email validation
+    public static final String EMAIL_REGEXP = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$";
 
 }
