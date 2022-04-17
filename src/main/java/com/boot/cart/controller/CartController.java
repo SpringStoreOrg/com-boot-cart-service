@@ -26,8 +26,6 @@ import com.boot.cart.service.CartService;
 import com.boot.services.dto.CartDTO;
 
 @Controller
-//this RequestMapping annotation does not add any value as you don't have any method without a mapping annotation
-@RequestMapping("/")
 public class CartController {
 
     @Autowired
