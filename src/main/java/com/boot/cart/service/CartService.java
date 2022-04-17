@@ -77,8 +77,8 @@ public class CartService {
 
         for (int i = 0; i < quantity; i++) {
             productList.add(product);
-            //TODO you could use also use += operator here
-            productTotal = product.getProductPrice() + productTotal;
+
+            productTotal += product.getProductPrice();
         }
 
         cart.setProductList(productList);
@@ -126,7 +126,7 @@ public class CartService {
         //this can be optimezed by using removeAll and by multiplying the price with the quantity
         for (int i = 0; i < productsInCart; i++) {
             productList.remove(product);
-            productTotalAdd = product.getProductPrice() + productTotalAdd;
+            productTotalAdd += product.getProductPrice();
         }
         cart.setTotal(cart.getTotal() - productTotalAdd);
         //	product.setProductStock(product.getProductStock() + quantity);
@@ -193,7 +193,7 @@ public class CartService {
 
             for (int i = 0; i < quantity; i++) {
                 productList.remove(product);
-                productTotal = product.getProductPrice() + productTotal;
+                productTotal += product.getProductPrice();
             }
 
             cart.setUser(user);
