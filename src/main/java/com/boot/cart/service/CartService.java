@@ -140,9 +140,6 @@ public class CartService {
         cart.setUser(user);
 
         cart.setProductList(productList);
-        //TODO this can be moved to PreUpdate method
-        cart.setLastUpdatedOn(LocalDateTime.now());
-
 
         cartRepository.save(cart);
         productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
