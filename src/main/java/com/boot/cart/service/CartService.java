@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -113,24 +114,21 @@ public class CartService {
         List<Product> productList = cart.getProductList();
 
         Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
-        
+
+
+
         if (productsInCart == 0) {
             throw new InvalidInputDataException(
                     "You currently have " + productsInCart + " Products: " + productName + " in cart!");
         }
 
-
-        double productTotalAdd = 0;
         double productTotalRemove = 0;
 
-        //this can be optimezed by using removeAll and by multiplying the price with the quantity
-        for (int i = 0; i < productsInCart; i++) {
-            productList.remove(product);
-            productTotalAdd += product.getProductPrice();
-        }
-        cart.setTotal(cart.getTotal() - productTotalAdd);
-        //	product.setProductStock(product.getProductStock() + quantity);
+        List<Product> products = productList.stream().filter(p -> p.getProductName().equals(productName)).collect(Collectors.toList());
+        productList.removeAll(products);
 
+        cart.setTotal(cart.getTotal() - (products.size() * product.getProductPrice()));
+        //	product.setProductStock(product.getProductStock() + quantity);
 
         for (int i = 0; i < quantity; i++) {
             productList.add(product);
