@@ -26,12 +26,12 @@ public class ProductServiceClient {
 
     public ProductDTO callGetProductByProductName(String productName) {
 
-        return productServiceRestTemplate.getForEntity(Constants.GET_PRODUCT_BY_PRODUCT_NAME+ productName, ProductDTO.class)
+        return productServiceRestTemplate.getForEntity(Constants.GET_PRODUCT_BY_PRODUCT_NAME, ProductDTO.class, productName)
                 .getBody();
     }
 
     public void callUpdateProductByProductName(String productName, ProductDTO productDto) {
-        productServiceRestTemplate.exchange(Constants.UPDATE_PRODUCT_BY_PRODUCT_NAME + productName, HttpMethod.PUT,
-                new HttpEntity<>(productDto), String.class);
+        productServiceRestTemplate.exchange(Constants.UPDATE_PRODUCT_BY_PRODUCT_NAME, HttpMethod.PUT,
+                new HttpEntity<>(productDto), String.class, productName);
     }
 }
