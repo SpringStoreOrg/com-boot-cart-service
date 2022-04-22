@@ -51,19 +51,19 @@ public class CartController {
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 
-    @PutMapping("/removeProductFromCart/{userName}/{productName}/{quantity}")
-    public ResponseEntity<CartDTO> removeProductfromCart(@Size(min = 2, message = "Min User Name size is 2!") @PathVariable("userName") String userName,
+    @PutMapping("/removeProductFromCart/{email}/{productName}/{quantity}")
+    public ResponseEntity<CartDTO> removeProductfromCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email")  String email,
                                                          @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
                                                          @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
-        CartDTO newCart = cartService.removeProductFromCart(userName, productName, quantity);
+        CartDTO newCart = cartService.removeProductFromCart(email, productName, quantity);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 
-    @DeleteMapping("/deleteCartByUserName/{userName}")
-    public ResponseEntity<CartDTO> deleteUserByUserName(@Size(min = 2, message = "Min User Name size is 2!") @PathVariable("userName") String userName)
-            throws EntityNotFoundException, InvalidInputDataException {
-        cartService.deleteCartByUserName(userName);
+    @DeleteMapping("/deleteCartByEmail/{email}")
+    public ResponseEntity<CartDTO> deleteCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email)
+            throws EntityNotFoundException {
+        cartService.deleteCartByEmail(email);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

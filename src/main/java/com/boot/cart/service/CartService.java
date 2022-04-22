@@ -94,7 +94,7 @@ public class CartService {
 
     }
 
-    public CartDTO updateProductFromCart(String userName, String productName, int quantity)
+    public CartDTO updateProductFromCart(String email, String productName, int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
 
         Product product;
@@ -106,9 +106,9 @@ public class CartService {
 
         User user;
         try {
-            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
+            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
         } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
+            throw new EntityNotFoundException("UserName: " + email + " not found in the Database!");
         }
         Cart cart = cartRepository.findByUser(user);
         List<Product> productList = cart.getProductList();
@@ -149,7 +149,7 @@ public class CartService {
 
     }
 
-    public CartDTO removeProductFromCart(String userName, String productName, int quantity)
+    public CartDTO removeProductFromCart(String email, String productName, int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
 
         Product product;
@@ -161,9 +161,9 @@ public class CartService {
 
         User user;
         try {
-            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
+            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
         } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
+            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
         }
         Cart cart = cartRepository.findByUser(user);
         List<Product> productList = cart.getProductList();
@@ -201,13 +201,13 @@ public class CartService {
         }
     }
 
-    public void deleteCartByUserName(String userName) throws InvalidInputDataException, EntityNotFoundException {
+    public void deleteCartByEmail(String email) throws  EntityNotFoundException {
 
         User user;
         try {
-            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(userName));
+            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
         } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("UserName: " + userName + " not found in the Database!");
+            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
         }
 
         //TODO you might benefit from hibernate caching but you might also do the same DB query twice here(once when you want to see it's not null and 2nd time when you use it)
