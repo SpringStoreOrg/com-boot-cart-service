@@ -60,8 +60,8 @@ public class CartController {
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 
-    @DeleteMapping("/deleteCartByEmail/{email}")
-    public ResponseEntity<CartDTO> deleteCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email)
+    @DeleteMapping("/deleteCartByEmail")
+    public ResponseEntity<CartDTO> deleteCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam("email") String email)
             throws EntityNotFoundException {
         cartService.deleteCartByEmail(email);
         return new ResponseEntity<>(HttpStatus.OK);
