@@ -29,16 +29,4 @@ public class AppConfig {
         return new RestTemplateBuilder().rootUri(productServiceUrl).build();
     }
 
-
-    @Bean
-    public ProductServiceClient cartServiceClient() {
-        return new ProductServiceClient();
-    }
-
-    @Bean
-    public UserServiceClient userServiceClient() {
-        return new UserServiceClient();
-    }
-
-
 }
