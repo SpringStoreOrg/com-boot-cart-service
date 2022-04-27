@@ -85,9 +85,6 @@ public class CartService {
         cart.setProductList(productList);
         cart.setTotal(cart.getTotal() + productTotal);
 
-        productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
-
-        //TODO here you might have problems if saving cart changes fails. you should handle somehow the rollback on the stock.
         cartRepository.save(cart);
 
         return CartMapper.cartEntityToDto(cart);
@@ -128,21 +125,18 @@ public class CartService {
         productList.removeAll(products);
 
         cart.setTotal(cart.getTotal() - (products.size() * product.getProductPrice()));
-        //	product.setProductStock(product.getProductStock() + quantity);
 
         for (int i = 0; i < quantity; i++) {
             productList.add(product);
             productTotalRemove = product.getProductPrice() + productTotalRemove;
         }
         cart.setTotal(cart.getTotal() + productTotalRemove);
-        //	product.setProductStock(product.getProductStock() - quantity);
 
         cart.setUser(user);
 
         cart.setProductList(productList);
 
         cartRepository.save(cart);
-        productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
 
         return CartMapper.cartEntityToDto(cart);
 
@@ -192,10 +186,7 @@ public class CartService {
             cart.setLastUpdatedOn(LocalDateTime.now());
             cart.setTotal(cart.getTotal() - productTotal);
 
-            //product.setProductStock(product.getProductStock() + quantity);
-
             cartRepository.save(cart);
-            productServiceClient.callUpdateProductByProductName(productName, ProductMapper.ProductEntityToDto(product));
 
             return CartMapper.cartEntityToDto(cart);
         }
@@ -223,11 +214,6 @@ public class CartService {
                 iter.remove();
 
                 log.info("{} succesfully deleted from Product List",product.getProductName());
-                product.setProductStock(product.getProductStock() + 1);
-                log.info("{} Productstock succesfully updated! currently {} products in stock!",product.getProductName(), product.getProductStock());
-
-                productServiceClient.callUpdateProductByProductName(product.getProductName(),
-                        ProductMapper.ProductEntityToDto(product));
 
             }
             cartRepository.delete(cart);
