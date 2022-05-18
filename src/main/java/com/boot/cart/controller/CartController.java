@@ -32,7 +32,7 @@ public class CartController {
     @Autowired
     private CartService cartService;
     
-    @PutMapping("/addProductToCart/{email}/{productName}/{quantity}")
+    @PutMapping("/{email}/{productName}/{quantity}")
     public ResponseEntity<CartDTO> addProductToCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
                                                     @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
                                                     @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
@@ -42,7 +42,7 @@ public class CartController {
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 
-    @PutMapping("/updateProductToCart/{email}/{productName}/{quantity}")
+    @PutMapping("/update/{email}/{productName}/{quantity}")
     public ResponseEntity<CartDTO> updateProductToCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
                                                        @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
                                                        @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
@@ -51,7 +51,7 @@ public class CartController {
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 
-    @PutMapping("/removeProductFromCart/{email}/{productName}/{quantity}")
+    @PutMapping("/remove/{email}/{productName}/{quantity}")
     public ResponseEntity<CartDTO> removeProductfromCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email")  String email,
                                                          @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
                                                          @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
@@ -60,28 +60,28 @@ public class CartController {
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 
-    @DeleteMapping("/deleteCartByEmail")
+    @DeleteMapping
     public ResponseEntity<CartDTO> deleteCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam("email") String email)
             throws EntityNotFoundException {
         cartService.deleteCartByEmail(email);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/getCartByEmail")
+    @GetMapping
     @ResponseBody
     public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam String email) throws EntityNotFoundException {
         CartDTO newCart = cartService.getCartByEmail(email);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 
-    @GetMapping("/getAllCarts")
+    @GetMapping("/carts")
     @ResponseBody
     public ResponseEntity<Set<CartDTO>> getAllCarts() throws EntityNotFoundException {
         Set<CartDTO> cartList = cartService.getAllCarts();
         return new ResponseEntity<>(cartList, HttpStatus.OK);
     }
 
-    @GetMapping("/getNumberOfActiveCarts")
+    @GetMapping("/activeCarts")
     @ResponseBody
     public ResponseEntity<Long> getNumberOfActiveCarts(){
         Long activeCarts = cartService.getNumberOfActiveCarts();
