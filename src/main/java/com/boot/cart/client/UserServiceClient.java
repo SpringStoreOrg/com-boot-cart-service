@@ -20,7 +20,4 @@ public class UserServiceClient {
         return userServiceRestTemplate.getForEntity(Constants.GET_USER_BY_EMAIL, UserDTO.class, email).getBody();
     }
 
-    public void callUpdateUser(String userName, UserDTO user) {
-        userServiceRestTemplate.exchange(Constants.UPDATE_USER + userName, HttpMethod.PUT, new HttpEntity<>(user), String.class);
-    }
 }
