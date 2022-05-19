@@ -67,21 +67,21 @@ public class CartController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/{email}")
     @ResponseBody
-    public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam String email) throws EntityNotFoundException {
+    public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email) throws EntityNotFoundException {
         CartDTO newCart = cartService.getCartByEmail(email);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 
-    @GetMapping("/carts")
+    @GetMapping
     @ResponseBody
     public ResponseEntity<Set<CartDTO>> getAllCarts() throws EntityNotFoundException {
         Set<CartDTO> cartList = cartService.getAllCarts();
         return new ResponseEntity<>(cartList, HttpStatus.OK);
     }
 
-    @GetMapping("/activeCarts")
+    @GetMapping("/count")
     @ResponseBody
     public ResponseEntity<Long> getNumberOfActiveCarts(){
         Long activeCarts = cartService.getNumberOfActiveCarts();
