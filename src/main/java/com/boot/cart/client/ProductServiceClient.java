@@ -3,14 +3,16 @@ package com.boot.cart.client;
 import java.util.Arrays;
 import java.util.List;
 
+import com.boot.cart.dto.ProductDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.boot.cart.util.Constants;
-import com.boot.services.dto.ProductDTO;
+
 
 @Component
 public class ProductServiceClient {
@@ -28,8 +30,7 @@ public class ProductServiceClient {
 
     public ProductDTO callGetProductByProductName(String productName) {
 
-        return productServiceRestTemplate.getForEntity(Constants.GET_PRODUCT_BY_PRODUCT_NAME, ProductDTO.class, productName)
-                .getBody();
+        return productServiceRestTemplate.getForEntity(Constants.GET_PRODUCT_BY_PRODUCT_NAME, ProductDTO.class, productName).getBody();
     }
 
     public void callUpdateProductByProductName(String productName, ProductDTO productDto) {
