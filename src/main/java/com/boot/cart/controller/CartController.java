@@ -54,33 +54,18 @@ public class CartController {
         CartDTO newCart = cartService.removeProductFromCart(email, productName, quantity);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
-//
-//    @DeleteMapping
-//    public ResponseEntity<CartDTO> deleteCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam("email") String email)
-//            throws EntityNotFoundException {
-//        cartService.deleteCartByEmail(email);
-//        return new ResponseEntity<>(HttpStatus.OK);
-//    }
-//
-//    @GetMapping("/{email}")
-//    @ResponseBody
-//    public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email) throws EntityNotFoundException {
-//        CartDTO newCart = cartService.getCartByEmail(email);
-//        return new ResponseEntity<>(newCart, HttpStatus.OK);
-//    }
 
-    @GetMapping
-    @ResponseBody
-    public ResponseEntity<Set<CartDTO>> getAllCarts() throws EntityNotFoundException {
-        Set<CartDTO> cartList = cartService.getAllCarts();
-        return new ResponseEntity<>(cartList, HttpStatus.OK);
+    @DeleteMapping
+    public ResponseEntity<CartDTO> deleteCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam("email") String email)
+            throws EntityNotFoundException {
+        cartService.deleteCartByEmail(email);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/count")
+    @GetMapping("/{email}")
     @ResponseBody
-    public ResponseEntity<Long> getNumberOfActiveCarts(){
-        Long activeCarts = cartService.getNumberOfActiveCarts();
-        return new ResponseEntity<>(activeCarts, HttpStatus.OK);
+    public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email) throws EntityNotFoundException {
+        CartDTO newCart = cartService.getCartByEmail(email);
+        return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
-
 }

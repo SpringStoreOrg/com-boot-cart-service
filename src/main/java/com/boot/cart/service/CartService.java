@@ -31,6 +31,7 @@ import static com.boot.cart.model.Cart.cartEntityToDtoList;
 @Slf4j
 @Service
 @AllArgsConstructor
+@Transactional
 public class CartService {
 
     CartEntryRepository cartEntryRepository;
@@ -41,7 +42,7 @@ public class CartService {
 
     UserServiceClient userServiceClient;
 
-    @Transactional
+
     public CartDTO addProductToCart(String email, String productName, int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
         log.info("addProductToCart - process started");
@@ -217,65 +218,34 @@ public class CartService {
 
         return cartEntityToDto(cartRepository.findByUserId(user.getId()));
     }
-//
-//    public void deleteCartByEmail(String email) throws  EntityNotFoundException {
-//
-//        User user;
-//        try {
-//            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
-//        } catch (HttpClientErrorException.NotFound e) {
-//            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-//        }
-//
-//        //TODO you might benefit from hibernate caching but you might also do the same DB query twice here(once when you want to see it's not null and 2nd time when you use it)
-//        if (cartRepository.findByUser(user) != null) {
-//            Cart cart = cartRepository.findByUser(user);
-//
-//            List<ProductDTO> prodList = cart.getProductList();
-//
-//            Iterator<ProductDTO> iter = prodList.iterator();
-//
-//            while (iter.hasNext()) {
-//                ProductDTO product = iter.next();
-//                iter.remove();
-//
-//                log.info("{} succesfully deleted from Product List",product.getProductName());
-//
-//            }
-//            cartRepository.delete(cart);
-//            log.info("Cart succesfully deleted!");
-//        }
-//        log.info("Cart is empty (null)!");
-//    }
-//
-//    public CartDTO getCartByEmail(String email) throws EntityNotFoundException {
-//
-//        UserDTO user;
-//        try {
-//            UserDTO  user = userServiceClient.callGetUserByEmail(email);
-//
-//        } catch (HttpClientErrorException.NotFound e) {
-//            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-//        }
-//
-//        if (cartRepository.findByUserId(user) != null) {
-//            Cart cart = cartRepository.findByUserId(user);
-//
-//            return cartEntityToDto(cart);
-//        } else
-//            return null;
-//    }
 
-    public Set<CartDTO> getAllCarts() throws EntityNotFoundException {
-        if (cartRepository.findAll().isEmpty()) {
-            throw new EntityNotFoundException("No cart found in the Database!");
+    public void deleteCartByEmail(String email) throws  EntityNotFoundException {
+        UserDTO user;
+        try {
+            user = userServiceClient.callGetUserByEmail(email);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
         }
-        List<Cart> allCarts = cartRepository.findAll();
-        return cartEntityToDtoList(allCarts);
+        Cart cart = cartRepository.findByUserId(user.getId());
+            cartRepository.delete(cart);
+            log.info("Cart successfully deleted!");
     }
 
-    public long getNumberOfActiveCarts() {
-        return cartRepository.count();
-    }
+    public CartDTO getCartByEmail(String email) throws EntityNotFoundException {
 
+        UserDTO user;
+        try {
+              user = userServiceClient.callGetUserByEmail(email);
+
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
+        }
+
+        if (cartRepository.findByUserId(user.getId()) != null) {
+            Cart cart = cartRepository.findByUserId(user.getId());
+
+            return cartEntityToDto(cart);
+        } else
+            return null;
+    }
 }
