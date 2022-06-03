@@ -1,10 +1,7 @@
 package com.boot.cart.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.boot.cart.dto.CartDTO;
@@ -14,7 +11,9 @@ import com.boot.cart.model.Cart;
 import com.boot.cart.model.CartEntry;
 import com.boot.cart.repository.CartEntryRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.boot.cart.client.ProductServiceClient;
@@ -42,6 +41,7 @@ public class CartService {
 
     UserServiceClient userServiceClient;
 
+    @Transactional
     public CartDTO addProductToCart(String email, String productName, int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
         log.info("addProductToCart - process started");
@@ -82,25 +82,17 @@ public class CartService {
             cartEntries.add(cartEntry);
         } else {
             cartEntries = cart.getEntries();
-            for (CartEntry cartEntry : cartEntries) {
-                if (cartEntry.getProductName().equals(productName)) {
-                    cartEntry.setQuantity(cartEntry.getQuantity() + quantity);
-                    cartEntry.setCart(cart);
-                    cartEntryRepository.save(cartEntry);
-                    break;
-                }
-            }
-            List<String> productNames =
-                    cartEntries.stream()
-                            .map(CartEntry::getProductName)
-                            .collect(Collectors.toList());
+            CartEntry cartEntry = cartEntries.stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().orElse(null);
 
-           if(!productNames.contains(productName)){
-                CartEntry cartEntry1 = new CartEntry();
-                cartEntry1.setProductName(productName);
-                cartEntry1.setQuantity(quantity);
-                cartEntry1.setCart(cart);
-                cartEntryRepository.save(cartEntry1);
+            if (cartEntry != null) {
+                cartEntry.setQuantity(cartEntry.getQuantity() + quantity);
+                cartEntry.setCart(cart);
+            }else {
+                CartEntry newCartEntry = new CartEntry();
+                newCartEntry.setProductName(productName);
+                newCartEntry.setQuantity(quantity);
+                newCartEntry.setCart(cart);
+                cartEntryRepository.save(newCartEntry);
             }
         }
 
