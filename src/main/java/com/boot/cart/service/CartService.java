@@ -109,106 +109,114 @@ public class CartService {
         return cartEntityToDto(cartRepository.findByUserId(user.getId()));
     }
 
-//    public CartDTO updateProductFromCart(String email, String productName, int quantity)
-//            throws InvalidInputDataException, EntityNotFoundException {
-//
-//        ProductDTO product;
-//        try {
-//            product = productServiceClient.callGetProductByProductName(productName);
-//        } catch (HttpClientErrorException.NotFound e) {
-//            throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
-//        }
-//
-//        User user;
-//        try {
-//            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
-//        } catch (HttpClientErrorException.NotFound e) {
-//            throw new EntityNotFoundException("UserName: " + email + " not found in the Database!");
-//        }
-//        Cart cart = cartRepository.findByUser(user);
-//        List<ProductDTO> productList = cart.getProductList();
-//
-//        Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
-//
-//
-//
-//        if (productsInCart == 0) {
-//            throw new InvalidInputDataException(
-//                    "You currently have " + productsInCart + " Products: " + productName + " in cart!");
-//        }
-//
-//        double productTotalRemove = 0;
-//
-//        List<ProductDTO> products = productList.stream().filter(p -> p.getProductName().equals(productName)).collect(Collectors.toList());
-//        productList.removeAll(products);
-//
-//        cart.setTotal(cart.getTotal() - (products.size() * product.getProductPrice()));
-//
-//        for (int i = 0; i < quantity; i++) {
-//            productList.add(product);
-//            productTotalRemove = product.getProductPrice() + productTotalRemove;
-//        }
-//        cart.setTotal(cart.getTotal() + productTotalRemove);
-//
-//        cart.setUser(user);
-//
-//        cart.setProductList(productList);
-//
-//        cartRepository.save(cart);
-//
-//        return CartMapper.cartEntityToDto(cart);
-//
-//
-//    }
-//
-//    public CartDTO removeProductFromCart(String email, String productName, int quantity)
-//            throws InvalidInputDataException, EntityNotFoundException {
-//
-//        ProductDTO product;
-//        try {
-//            product = productServiceClient.callGetProductByProductName(productName);
-//        } catch (HttpClientErrorException.NotFound e) {
-//            throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
-//        }
-//
-//        User user;
-//        try {
-//            user = UserMapper.DtoToUserEntity(userServiceClient.callGetUserByEmail(email));
-//        } catch (HttpClientErrorException.NotFound e) {
-//            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-//        }
-//        Cart cart = cartRepository.findByUser(user);
-//        List<ProductDTO> productList = cart.getProductList();
-//
-//        Long productsInCart = productList.stream().filter(p -> p.getProductName().equals(productName)).count();
-//
-//        if (productsInCart == 0) {
-//            throw new InvalidInputDataException(
-//                    "You currently have " + productsInCart + " Products: " + productName + " in cart!");
-//        }
-//
-//        if (Math.toIntExact(productsInCart) < quantity) {
-//            throw new InvalidInputDataException("You cannot remove more than " + productsInCart + " " + productName
-//                    + " Products from the shopping cart!");
-//        } else {
-//            double productTotal = 0;
-//
-//            for (int i = 0; i < quantity; i++) {
-//                productList.remove(product);
-//                productTotal += product.getProductPrice();
-//            }
-//
-//            cart.setUser(user);
-//
-//            cart.setProductList(productList);
-//            cart.setLastUpdatedOn(LocalDateTime.now());
-//            cart.setTotal(cart.getTotal() - productTotal);
-//
-//            cartRepository.save(cart);
-//
-//            return CartMapper.cartEntityToDto(cart);
-//        }
-//    }
+    public CartDTO updateProductFromCart(String email, String productName, int quantity)
+            throws InvalidInputDataException, EntityNotFoundException {
+        log.info("removeProductFromCart - process started");
+
+        ProductDTO productDTO;
+        try {
+            productDTO = productServiceClient.callGetProductByProductName(productName);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
+        }
+
+        if (productDTO.getStock() == 0) {
+            throw new InvalidInputDataException("We are sorry, but currently: " + productName + " is out of order!");
+        }
+
+        if (productDTO.getStock() < quantity) {
+            throw new InvalidInputDataException("You can not remove more than: " + productDTO.getStock() + " "
+                    + productName + " Products from your shopping cart!");
+        }
+        UserDTO user;
+        try {
+            user = userServiceClient.callGetUserByEmail(email);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
+        }
+        Cart cart = cartRepository.findByUserId(user.getId());
+
+        List<CartEntry> cartEntries;
+        long initialProductTotal = 0;
+        Integer initialQuantity = 0;
+
+        cartEntries = cart.getEntries();
+        CartEntry cartEntry = cartEntries.stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().orElse(null);
+
+        if (cartEntry == null) {
+            throw new EntityNotFoundException("CartEntry not found in the Database!");
+        }
+        else{
+            initialQuantity = cartEntry.getQuantity();
+            cartEntry.setQuantity(0);
+            cartEntry.setQuantity(quantity);
+            cartEntry.setCart(cart);
+
+            initialProductTotal = initialQuantity *  productDTO.getPrice();
+        }
+
+        cart.setEntries(cartEntries);
+
+        cart.setTotal(cart.getTotal() - initialProductTotal);
+        cart.setTotal(cart.getTotal()+(quantity*productDTO.getPrice()));
+
+        cartRepository.save(cart);
+
+        return cartEntityToDto(cartRepository.findByUserId(user.getId()));
+    }
+
+    public CartDTO removeProductFromCart(String email, String productName, int quantity)
+            throws InvalidInputDataException, EntityNotFoundException {
+        log.info("removeProductFromCart - process started");
+
+        ProductDTO productDTO;
+        try {
+            productDTO = productServiceClient.callGetProductByProductName(productName);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
+        }
+
+        if (productDTO.getStock() == 0) {
+            throw new InvalidInputDataException("We are sorry, but currently: " + productName + " is out of order!");
+        }
+
+        if (productDTO.getStock() < quantity) {
+            throw new InvalidInputDataException("You can not remove more than: " + productDTO.getStock() + " "
+                    + productName + " Products from your shopping cart!");
+        }
+        UserDTO user;
+        try {
+            user = userServiceClient.callGetUserByEmail(email);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
+        }
+        Cart cart = cartRepository.findByUserId(user.getId());
+
+        List<CartEntry> cartEntries;
+        double productTotal = 0;
+
+            cartEntries = cart.getEntries();
+            CartEntry cartEntry = cartEntries.stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().orElse(null);
+
+            if (cartEntry == null) {
+                throw new EntityNotFoundException("CartEntry not found in the Database!");
+            }
+            else{
+                cartEntry.setQuantity(cartEntry.getQuantity() - quantity);
+                cartEntry.setCart(cart);
+            }
+
+        for (int i = 0; i < quantity; i++) {
+            productTotal -= productDTO.getPrice();
+        }
+
+        cart.setEntries(cartEntries);
+        cart.setTotal(cart.getTotal() + productTotal);
+
+        cartRepository.save(cart);
+
+        return cartEntityToDto(cartRepository.findByUserId(user.getId()));
+    }
 //
 //    public void deleteCartByEmail(String email) throws  EntityNotFoundException {
 //
