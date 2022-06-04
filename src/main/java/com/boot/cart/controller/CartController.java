@@ -1,8 +1,6 @@
 
 package com.boot.cart.controller;
 
-import java.util.Set;
-
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
@@ -46,12 +44,11 @@ public class CartController {
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{email}/{productName}/{quantity}")
-    public ResponseEntity<CartDTO> removeProductfromCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email")  String email,
-                                                         @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
-                                                         @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
+    @DeleteMapping("/{email}/{productName}")
+    public ResponseEntity<CartDTO> removeProductFromCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email")  String email,
+                                                         @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName)
             throws InvalidInputDataException, EntityNotFoundException {
-        CartDTO newCart = cartService.removeProductFromCart(email, productName, quantity);
+        CartDTO newCart = cartService.removeProductFromCart(email, productName);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 

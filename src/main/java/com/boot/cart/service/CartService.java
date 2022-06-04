@@ -67,6 +67,7 @@ public class CartService {
         } catch (HttpClientErrorException.NotFound e) {
             throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
         }
+
         Cart cart = cartRepository.findByUserId(user.getId());
 
         List<CartEntry> cartEntries;
@@ -88,7 +89,7 @@ public class CartService {
             if (cartEntry != null) {
                 cartEntry.setQuantity(cartEntry.getQuantity() + quantity);
                 cartEntry.setCart(cart);
-            }else {
+            } else {
                 CartEntry newCartEntry = new CartEntry();
                 newCartEntry.setProductName(productName);
                 newCartEntry.setQuantity(quantity);
@@ -135,10 +136,15 @@ public class CartService {
         } catch (HttpClientErrorException.NotFound e) {
             throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
         }
-        Cart cart = cartRepository.findByUserId(user.getId());
+
+        Cart cart;
+        if (cartRepository.findByUserId(user.getId()) != null) {
+            cart = cartRepository.findByUserId(user.getId());
+        } else {
+            throw new EntityNotFoundException("Cart not found in the Database!");
+        }
 
         List<CartEntry> cartEntries;
-        long initialProductTotal = 0;
         Integer initialQuantity = 0;
 
         cartEntries = cart.getEntries();
@@ -146,27 +152,24 @@ public class CartService {
 
         if (cartEntry == null) {
             throw new EntityNotFoundException("CartEntry not found in the Database!");
-        }
-        else{
+        } else {
             initialQuantity = cartEntry.getQuantity();
-            cartEntry.setQuantity(0);
             cartEntry.setQuantity(quantity);
             cartEntry.setCart(cart);
-
-            initialProductTotal = initialQuantity *  productDTO.getPrice();
         }
 
         cart.setEntries(cartEntries);
 
-        cart.setTotal(cart.getTotal() - initialProductTotal);
-        cart.setTotal(cart.getTotal()+(quantity*productDTO.getPrice()));
+        double total = cart.getTotal() - (initialQuantity * productDTO.getPrice()) + (quantity * productDTO.getPrice());
+
+        cart.setTotal(total);
 
         cartRepository.save(cart);
 
         return cartEntityToDto(cartRepository.findByUserId(user.getId()));
     }
 
-    public CartDTO removeProductFromCart(String email, String productName, int quantity)
+    public CartDTO removeProductFromCart(String email, String productName)
             throws InvalidInputDataException, EntityNotFoundException {
         log.info("removeProductFromCart - process started");
 
@@ -181,10 +184,6 @@ public class CartService {
             throw new InvalidInputDataException("We are sorry, but currently: " + productName + " is out of order!");
         }
 
-        if (productDTO.getStock() < quantity) {
-            throw new InvalidInputDataException("You can not remove more than: " + productDTO.getStock() + " "
-                    + productName + " Products from your shopping cart!");
-        }
         UserDTO user;
         try {
             user = userServiceClient.callGetUserByEmail(email);
@@ -193,49 +192,39 @@ public class CartService {
         }
         Cart cart = cartRepository.findByUserId(user.getId());
 
-        List<CartEntry> cartEntries;
-        double productTotal = 0;
+        cartEntryRepository.delete(cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().get());
 
-            cartEntries = cart.getEntries();
-            CartEntry cartEntry = cartEntries.stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().orElse(null);
-
-            if (cartEntry == null) {
-                throw new EntityNotFoundException("CartEntry not found in the Database!");
-            }
-            else{
-                cartEntry.setQuantity(cartEntry.getQuantity() - quantity);
-                cartEntry.setCart(cart);
-            }
-
-        for (int i = 0; i < quantity; i++) {
-            productTotal -= productDTO.getPrice();
-        }
-
-        cart.setEntries(cartEntries);
-        cart.setTotal(cart.getTotal() + productTotal);
+        cart.setEntries(cart.getEntries().stream().filter(entry -> !productName.equals(entry.getProductName())).collect(Collectors.toList()));
+        cart.setTotal(cart.getTotal() - cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).count() * productDTO.getPrice());
 
         cartRepository.save(cart);
 
         return cartEntityToDto(cartRepository.findByUserId(user.getId()));
     }
 
-    public void deleteCartByEmail(String email) throws  EntityNotFoundException {
+    public void deleteCartByEmail(String email) throws EntityNotFoundException {
         UserDTO user;
         try {
             user = userServiceClient.callGetUserByEmail(email);
         } catch (HttpClientErrorException.NotFound e) {
             throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
         }
-        Cart cart = cartRepository.findByUserId(user.getId());
+
+        if (cartRepository.findByUserId(user.getId()) != null) {
+            Cart cart = cartRepository.findByUserId(user.getId());
+
             cartRepository.delete(cart);
             log.info("Cart successfully deleted!");
+        } else {
+            throw new EntityNotFoundException("Cart not found in the Database!");
+        }
     }
 
     public CartDTO getCartByEmail(String email) throws EntityNotFoundException {
 
         UserDTO user;
         try {
-              user = userServiceClient.callGetUserByEmail(email);
+            user = userServiceClient.callGetUserByEmail(email);
 
         } catch (HttpClientErrorException.NotFound e) {
             throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
@@ -245,7 +234,8 @@ public class CartService {
             Cart cart = cartRepository.findByUserId(user.getId());
 
             return cartEntityToDto(cart);
-        } else
-            return null;
+        } else {
+            throw new EntityNotFoundException("Cart not found in the Database!");
+        }
     }
 }
