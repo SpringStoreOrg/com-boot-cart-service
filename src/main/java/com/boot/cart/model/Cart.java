@@ -41,7 +41,7 @@ public class Cart implements Serializable {
 	private LocalDateTime lastUpdatedOn;
 
 	@JsonManagedReference
-	@OneToMany(mappedBy = "cart", fetch = FetchType.LAZY,  cascade = { CascadeType.ALL} )
+	@OneToMany(mappedBy = "cart", fetch = FetchType.LAZY,  cascade = { CascadeType.ALL}, orphanRemoval = true)
 	private List<CartEntry> entries;
 
 	@PreUpdate
