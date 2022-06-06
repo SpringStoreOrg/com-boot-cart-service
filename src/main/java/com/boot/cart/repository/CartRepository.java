@@ -1,6 +1,7 @@
 package com.boot.cart.repository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 
 import com.boot.cart.model.Cart;
@@ -14,5 +15,5 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
 
     Set<Cart> findByLastUpdatedOnBefore(LocalDateTime date);
 
-    Cart findByUserId(long userId);
+    Optional<Cart> findByUserId(long userId);
 }
