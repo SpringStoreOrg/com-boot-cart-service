@@ -65,8 +65,7 @@ public class CartService {
             throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
         }
 
-        Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
-                new EntityNotFoundException("Cart not found in the Database!"));
+        Cart cart = cartRepository.findByUserId(user.getId()).orElse(null);
 
         List<CartEntry> cartEntries;
         double productTotal = 0;
@@ -76,6 +75,7 @@ public class CartService {
             cartEntries = new ArrayList<>();
             CartEntry cartEntry = new CartEntry();
             cartEntry.setProductName(productName);
+            cartEntry.setPrice(productDTO.getPrice());
             cartEntry.setQuantity(quantity);
             cartEntry.setCart(cart);
 
@@ -85,11 +85,13 @@ public class CartService {
             CartEntry cartEntry = cartEntries.stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().orElse(null);
 
             if (cartEntry != null) {
+                cartEntry.setPrice(productDTO.getPrice());
                 cartEntry.setQuantity(cartEntry.getQuantity() + quantity);
                 cartEntry.setCart(cart);
             } else {
                 CartEntry newCartEntry = new CartEntry();
                 newCartEntry.setProductName(productName);
+                newCartEntry.setPrice(productDTO.getPrice());
                 newCartEntry.setQuantity(quantity);
                 newCartEntry.setCart(cart);
                 cartEntries.add(newCartEntry);

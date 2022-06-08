@@ -2,7 +2,7 @@ package com.boot.cart.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
-import lombok.experimental.Accessors;
+
 
 import javax.persistence.*;
 
@@ -18,6 +18,9 @@ public class CartEntry  {
 
     @Column
     private String productName;
+
+    @Column
+    private double price;
 
     @Column
     private Integer quantity;

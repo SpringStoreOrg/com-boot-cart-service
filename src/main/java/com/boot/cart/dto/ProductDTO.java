@@ -30,7 +30,7 @@ public class ProductDTO {
 	private String description;
 
 	@Positive(message = "Product price should be positive number!")
-	private long price;
+	private double price;
 
 	@Size(min = 3,message = "Min Product photo link size is 3 characters!")
 	@Size(max = 600,message = "Max Product photo link size is 600 characters!")
