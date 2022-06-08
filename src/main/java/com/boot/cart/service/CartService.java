@@ -127,8 +127,8 @@ public class CartService {
         }
 
         if (productDTO.getStock() < quantity) {
-            throw new InvalidInputDataException("You can not remove more than: " + productDTO.getStock() + " "
-                    + productName + " Products from your shopping cart!");
+            throw new InvalidInputDataException("You can not add more than: " + productDTO.getStock() + " "
+                    + productName + " Products to your shopping cart!");
         }
         UserDTO user;
         try {
@@ -182,8 +182,8 @@ public class CartService {
          new EntityNotFoundException("Cart not found in the Database!"));
 
         List<CartEntry> matchingEntries = cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).collect(Collectors.toList());
+        cart.setTotal(cart.getTotal() - cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().get().getQuantity() * productDTO.getPrice());
         cart.getEntries().removeAll(matchingEntries);
-        cart.setTotal(cart.getTotal() - cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).count() * productDTO.getPrice());
 
         return cartEntityToDto(cartRepository.save(cart));
     }
