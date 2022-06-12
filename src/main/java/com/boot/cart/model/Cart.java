@@ -2,6 +2,7 @@
 package com.boot.cart.model;
 
 import com.boot.cart.dto.CartDTO;
+import com.boot.cart.dto.ProductDTO;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -14,6 +15,9 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.boot.cart.model.CartEntryMapper.cartEntityToDtoList;
+
 
 @Data
 @Accessors(chain = true)
@@ -50,44 +54,11 @@ public class Cart implements Serializable {
 	}
 
 
-	public static CartDTO cartEntityToDto(Cart cart) {
+	public static CartDTO cartEntityToDto(Cart cart, List<ProductDTO> productsInCart) {
 		return new CartDTO()
 				.setId(cart.getId())
 				.setUserId(cart.getUserId())
-				.setEntries(cart.getEntries())
+				.setEntries(cartEntityToDtoList(cart, productsInCart))
 				.setTotal(cart.getTotal());
-	}
-
-	public static Cart dtoToCartEntity(CartDTO cartDto) {
-		return new Cart()
-				.setId(cartDto.getId())
-				.setUserId(cartDto.getUserId())
-				.setEntries(cartDto.getEntries())
-				.setTotal(cartDto.getTotal());
-	}
-
-	public static Cart updateDtoToCartEntity(Cart cart, CartDTO cartDto) {
-		return cart.setId(cartDto.getId())
-				.setUserId(cartDto.getUserId())
-				.setEntries(cartDto.getEntries())
-				.setTotal(cartDto.getTotal());
-	}
-
-	public static Set<CartDTO> cartEntityToDtoList(List<Cart> cartList) {
-
-		Set<CartDTO> cartDTOList = new HashSet<>();
-
-		cartList.stream().forEach(c -> cartDTOList.add(cartEntityToDto(c)));
-
-		return cartDTOList;
-	}
-
-	public static Set<Cart> dtoToCartEntityList(List<CartDTO> cartDTOList) {
-
-		Set<Cart> cartList = new HashSet<>();
-
-		cartDTOList.stream().forEach(cDTO -> cartList.add(dtoToCartEntity(cDTO)));
-
-		return cartList;
 	}
 }

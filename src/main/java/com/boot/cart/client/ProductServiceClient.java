@@ -2,6 +2,7 @@ package com.boot.cart.client;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import com.boot.cart.dto.ProductDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,5 +37,10 @@ public class ProductServiceClient {
     public void callUpdateProductByProductName(String productName, ProductDTO productDto) {
         productServiceRestTemplate.exchange(Constants.UPDATE_PRODUCT_BY_PRODUCT_NAME, HttpMethod.PUT,
                 new HttpEntity<>(productDto), String.class, productName);
+    }
+
+    public List<ProductDTO> callGetAllProductsFromUser(String productNames, Boolean includeInactive ) {
+
+        return Arrays.asList(Objects.requireNonNull(productServiceRestTemplate.getForEntity(Constants.GET_ALL_PRODUCTS_FOR_USER, ProductDTO[].class, productNames, includeInactive).getBody()));
     }
 }

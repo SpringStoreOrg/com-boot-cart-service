@@ -23,5 +23,5 @@ public class CartDTO {
 
 	private double total;
 
-	private List<CartEntry> entries;
+	private List<CartEntryDTO> entries;
 }

@@ -106,10 +106,19 @@ public class CartService {
         cart.setTotal(cart.getTotal() + productTotal);
         cart.setUserId(user.getId());
 
-        ;
+        cartRepository.save(cart);
 
-        return cartEntityToDto(cartRepository.save(cart));
+        List<String> userCartEntries = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.toList());
+
+        String productParam = String.join(",", userCartEntries);
+
+        List<ProductDTO> productsInCart =  productServiceClient.callGetAllProductsFromUser(productParam, false);
+
+        return cartEntityToDto(cart, productsInCart);
     }
+
+
+
 
     public CartDTO updateProductFromCart(String email, String productName, int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
@@ -157,7 +166,15 @@ public class CartService {
 
         cart.setTotal(total);
 
-        return cartEntityToDto(cartRepository.save(cart));
+        cartRepository.save(cart);
+
+        List<String> userCartEntries = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.toList());
+
+        String productParam = String.join(",", userCartEntries);
+
+        List<ProductDTO> productsInCart =  productServiceClient.callGetAllProductsFromUser(productParam, false);
+
+        return cartEntityToDto(cart, productsInCart);
     }
 
     public CartDTO removeProductFromCart(String email, String productName)
@@ -185,7 +202,16 @@ public class CartService {
         cart.setTotal(cart.getTotal() - cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().get().getQuantity() * productDTO.getPrice());
         cart.getEntries().removeAll(matchingEntries);
 
-        return cartEntityToDto(cartRepository.save(cart));
+        cartRepository.save(cart);
+
+        List<String> userCartEntries = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.toList());
+
+        String productParam = String.join(",", userCartEntries);
+
+        List<ProductDTO> productsInCart =  productServiceClient.callGetAllProductsFromUser(productParam, false);
+
+
+        return cartEntityToDto(cart, productsInCart);
     }
 
     public void deleteCartByEmail(String email) throws EntityNotFoundException {
@@ -215,6 +241,15 @@ public class CartService {
 
         Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
                 new EntityNotFoundException("Cart not found in the Database!"));
-            return cartEntityToDto(cart);
+        cartRepository.save(cart);
+
+        List<String> userCartEntries = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.toList());
+
+        String productParam = String.join(",", userCartEntries);
+
+        List<ProductDTO> productsInCart =  productServiceClient.callGetAllProductsFromUser(productParam, false);
+
+
+        return cartEntityToDto(cart, productsInCart);
     }
 }

@@ -1,8 +1,11 @@
 package com.boot.cart.model;
 
+import com.boot.cart.client.ProductServiceClient;
+import com.boot.cart.dto.CartDTO;
+import com.boot.cart.dto.CartEntryDTO;
+import com.boot.cart.dto.ProductDTO;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
-
 
 import javax.persistence.*;
 
@@ -29,5 +32,8 @@ public class CartEntry  {
     @ManyToOne
     @JoinColumn(name = "cart_id")
     private Cart cart;
+
+
+
 
 }
