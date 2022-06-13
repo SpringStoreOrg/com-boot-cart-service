@@ -14,10 +14,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -32,19 +29,22 @@ public class CartEntryMapper implements Serializable {
 
         List<CartEntryDTO> cartEntryDTOList = new ArrayList<>();
 
+        Map<String, CartEntry> cartEntries = new HashMap<>();
 
+        for (CartEntry cartEntry : cart.getEntries()) {
 
-        for (CartEntry cartEntry:cart.getEntries()) {
-            for (ProductDTO product:productsInCart) {
-                 if (cartEntry.getProductName().equals(product.getName())){
-                     cartEntryDTOList.add(new CartEntryDTO()
-                             .setId(cartEntry.getId())
-                             .setProductName(product.getName())
-                             .setDescription(product.getDescription())
-                             .setPrice(product.getPrice())
-                             .setPhotoLink(product.getPhotoLink())
-                             .setQuantity(cartEntry.getQuantity()));
-                 }
+            cartEntries.put(cartEntry.getProductName(), cartEntry);
+        }
+
+        for (ProductDTO product : productsInCart) {
+            if (cartEntries.containsKey(product.getName())) {
+                cartEntryDTOList.add(new CartEntryDTO()
+                        .setId(cartEntries.get(product.getName()).getId())
+                        .setProductName(product.getName())
+                        .setDescription(product.getDescription())
+                        .setPrice(product.getPrice())
+                        .setPhotoLink(product.getPhotoLink())
+                        .setQuantity(cartEntries.get(product.getName()).getQuantity()));
             }
         }
         return cartEntryDTOList;

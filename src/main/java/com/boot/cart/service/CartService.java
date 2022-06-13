@@ -10,6 +10,8 @@ import com.boot.cart.model.Cart;
 import com.boot.cart.model.CartEntry;
 import com.boot.cart.repository.CartEntryRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -108,13 +110,7 @@ public class CartService {
 
         cartRepository.save(cart);
 
-        List<String> userCartEntries = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.toList());
-
-        String productParam = String.join(",", userCartEntries);
-
-        List<ProductDTO> productsInCart =  productServiceClient.callGetAllProductsFromUser(productParam, false);
-
-        return cartEntityToDto(cart, productsInCart);
+        return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
 
@@ -168,13 +164,7 @@ public class CartService {
 
         cartRepository.save(cart);
 
-        List<String> userCartEntries = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.toList());
-
-        String productParam = String.join(",", userCartEntries);
-
-        List<ProductDTO> productsInCart =  productServiceClient.callGetAllProductsFromUser(productParam, false);
-
-        return cartEntityToDto(cart, productsInCart);
+        return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
     public CartDTO removeProductFromCart(String email, String productName)
@@ -204,14 +194,17 @@ public class CartService {
 
         cartRepository.save(cart);
 
-        List<String> userCartEntries = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.toList());
+        return cartEntityToDto(cart, getProductDTOS(cart));
+    }
 
-        String productParam = String.join(",", userCartEntries);
+    private List<ProductDTO> getProductDTOS(@NotNull Cart cart) {
+        String productParam = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.joining(","));
 
-        List<ProductDTO> productsInCart =  productServiceClient.callGetAllProductsFromUser(productParam, false);
-
-
-        return cartEntityToDto(cart, productsInCart);
+        if (StringUtils.isNotBlank(productParam)) {
+          return productServiceClient.callGetAllProductsFromUser(productParam, false);
+        } else {
+            return new ArrayList<>();
+        }
     }
 
     public void deleteCartByEmail(String email) throws EntityNotFoundException {
@@ -243,13 +236,6 @@ public class CartService {
                 new EntityNotFoundException("Cart not found in the Database!"));
         cartRepository.save(cart);
 
-        List<String> userCartEntries = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.toList());
-
-        String productParam = String.join(",", userCartEntries);
-
-        List<ProductDTO> productsInCart =  productServiceClient.callGetAllProductsFromUser(productParam, false);
-
-
-        return cartEntityToDto(cart, productsInCart);
+        return cartEntityToDto(cart, getProductDTOS(cart));
     }
 }
