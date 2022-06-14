@@ -11,7 +11,6 @@ import com.boot.cart.model.CartEntry;
 import com.boot.cart.repository.CartEntryRepository;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -197,7 +196,7 @@ public class CartService {
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
-    private List<ProductDTO> getProductDTOS(@NotNull Cart cart) {
+    private List<ProductDTO> getProductDTOS(Cart cart) {
         String productParam = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.joining(","));
 
         if (StringUtils.isNotBlank(productParam)) {

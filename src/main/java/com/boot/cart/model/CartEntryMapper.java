@@ -44,6 +44,7 @@ public class CartEntryMapper implements Serializable {
                         .setDescription(product.getDescription())
                         .setPrice(product.getPrice())
                         .setPhotoLink(product.getPhotoLink())
+                        .setStock(product.getStock())
                         .setQuantity(cartEntries.get(product.getName()).getQuantity()));
             }
         }

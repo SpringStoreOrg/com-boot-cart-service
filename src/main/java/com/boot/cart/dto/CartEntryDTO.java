@@ -24,6 +24,8 @@ public class CartEntryDTO {
 
 	private String photoLink;
 
+	private Integer stock;
+
 	private Integer quantity;
 
 
