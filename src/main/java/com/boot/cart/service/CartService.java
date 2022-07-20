@@ -232,7 +232,7 @@ public class CartService {
     }
 
     public CartDTO removeProductFromCart(String email, String productName)
-            throws  EntityNotFoundException {
+            throws EntityNotFoundException {
         log.info("removeProductFromCart - process started");
 
         ProductDTO productDTO;
@@ -250,7 +250,7 @@ public class CartService {
         }
 
         Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
-         new EntityNotFoundException("Cart not found in the Database!"));
+                new EntityNotFoundException("Cart not found in the Database!"));
 
         List<CartEntry> matchingEntries = cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).collect(Collectors.toList());
         cart.setTotal(cart.getTotal() - cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().get().getQuantity() * productDTO.getPrice());
@@ -265,7 +265,7 @@ public class CartService {
         String productParam = cart.getEntries().stream().map(CartEntry::getProductName).collect(Collectors.joining(","));
 
         if (StringUtils.isNotBlank(productParam)) {
-          return productServiceClient.callGetAllProductsFromUser(productParam, false);
+            return productServiceClient.callGetAllProductsFromUser(productParam, false);
         } else {
             return new ArrayList<>();
         }
@@ -281,8 +281,8 @@ public class CartService {
 
         Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
                 new EntityNotFoundException("Cart not found in the Database!"));
-            cartRepository.delete(cart);
-            log.info("Cart successfully deleted!");
+        cartRepository.delete(cart);
+        log.info("Cart successfully deleted!");
 
     }
 
