@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.boot.cart.service.CartService;
 
+import java.io.IOException;
+import java.util.List;
+
 
 @Controller
 @AllArgsConstructor
@@ -41,6 +44,14 @@ public class CartController {
                                                        @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
         CartDTO newCart = cartService.updateProductFromCart(email, productName, quantity);
+        return new ResponseEntity<>(newCart, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{email}")
+    public ResponseEntity<CartDTO> updateProductToCartOnLogin(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
+                                                       @Size(min = 2, message = "Min Product Name size is 2!") @RequestBody String products)
+            throws InvalidInputDataException, EntityNotFoundException, IOException {
+        CartDTO newCart = cartService.updateProductToCartOnLogin(email, products);
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 

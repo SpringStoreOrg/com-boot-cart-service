@@ -43,6 +43,8 @@ public class ProductDTO {
 	@Positive(message = "Product stock should be positive number!")
 	private int stock;
 
+	private int quantity;
+
 	@Enumerated(EnumType.STRING)
 	@Column
 	private ProductStatus status;
