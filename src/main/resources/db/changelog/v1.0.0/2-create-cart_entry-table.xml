@@ -31,5 +31,14 @@
             </column>
         </createTable>
 
+        <addForeignKeyConstraint
+                                 baseTableSchemaName="cart"
+                                 baseTableName="cart_entry"
+                                 baseColumnNames="cart_id"
+                                 constraintName="cart_entry_f1"
+                                 referencedTableSchemaName="cart"
+                                 referencedTableName="cart"
+                                 referencedColumnNames="id"/>
+
     </changeSet>
 </databaseChangeLog>
