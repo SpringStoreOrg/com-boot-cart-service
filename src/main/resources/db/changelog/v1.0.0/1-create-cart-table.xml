@@ -19,7 +19,7 @@
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="last_updated_on" type="date">
+            <column name="last_updated_on" type="datetime">
             </column>
             <column name="total" type="bigint">
                 <constraints nullable="false"/>
