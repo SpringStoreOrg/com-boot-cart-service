@@ -195,8 +195,17 @@ public class CartService {
                 throw new InvalidInputDataException("We are sorry, but currently: " + productDTO.getName() + " is out of order!");
             }
         }
-        Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
-                new EntityNotFoundException("Cart not found in the Database!"));
+        Optional<Cart> optionalCart = cartRepository.findByUserId(user.getId());
+        Cart cart = null;
+        if (optionalCart.isPresent()) {
+            cart = optionalCart.get();
+        } else {
+            Cart newCart = new Cart();
+            newCart.setUserId(user.getId());
+            newCart.setEntries(new ArrayList<>());
+            newCart.setTotal(0);
+            cart = cartRepository.save(newCart);
+        }
 
         List<CartEntry> cartEntries = cart.getEntries();
 
@@ -291,14 +300,21 @@ public class CartService {
         UserDTO user;
         try {
             user = userServiceClient.callGetUserByEmail(email);
-
         } catch (HttpClientErrorException.NotFound e) {
             throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
         }
 
-        Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
-                new EntityNotFoundException("Cart not found in the Database!"));
-        cartRepository.save(cart);
+        Optional<Cart> optionalCart = cartRepository.findByUserId(user.getId());
+        Cart cart = null;
+        if (optionalCart.isPresent()) {
+            cart = optionalCart.get();
+        } else {
+            Cart newCart = new Cart();
+            newCart.setUserId(user.getId());
+            newCart.setTotal(0);
+            newCart.setEntries(new ArrayList<>());
+            cart = cartRepository.save(newCart);
+        }
 
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
