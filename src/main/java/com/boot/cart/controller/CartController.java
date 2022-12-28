@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import com.boot.cart.service.CartService;
 
 import java.io.IOException;
-import java.util.List;
 
 
 @Controller
@@ -27,53 +26,60 @@ import java.util.List;
 public class CartController {
 
     private CartService cartService;
-    
+
+    private static final String USER_ID_HEADER = "User-Id";
+
     @PostMapping("/{email}/{productName}/{quantity}")
     public ResponseEntity<CartDTO> addProductToCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
                                                     @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
-                                                    @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
+                                                    @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity,
+                                                    @RequestHeader(value = USER_ID_HEADER) long userId)
             throws InvalidInputDataException, EntityNotFoundException {
-
-        CartDTO newCart = cartService.addProductToCart(email, productName, quantity);
+        CartDTO newCart = cartService.addProductToCart(userId, productName, quantity);
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 
     @PutMapping("/{email}/{productName}/{quantity}")
     public ResponseEntity<CartDTO> updateProductToCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
                                                        @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
-                                                       @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity)
+                                                       @Positive(message = "Quantity should be positive number") @PathVariable("quantity") int quantity,
+                                                       @RequestHeader(value = USER_ID_HEADER) long userId)
             throws InvalidInputDataException, EntityNotFoundException {
-        CartDTO newCart = cartService.updateProductFromCart(email, productName, quantity);
+        CartDTO newCart = cartService.updateProductFromCart(userId, productName, quantity);
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 
     @PutMapping("/{email}")
     public ResponseEntity<CartDTO> updateProductToCartOnLogin(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
-                                                       @Size(min = 2, message = "Min Product Name size is 2!") @RequestBody String products)
+                                                              @Size(min = 2, message = "Min Product Name size is 2!") @RequestBody String products,
+                                                              @RequestHeader(value = USER_ID_HEADER) long userId)
             throws InvalidInputDataException, EntityNotFoundException, IOException {
-        CartDTO newCart = cartService.updateProductToCartOnLogin(email, products);
+        CartDTO newCart = cartService.updateProductToCartOnLogin(userId, products);
         return new ResponseEntity<>(newCart, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{email}/{productName}")
-    public ResponseEntity<CartDTO> removeProductFromCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email")  String email,
-                                                         @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName)
+    public ResponseEntity<CartDTO> removeProductFromCart(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
+                                                         @Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
+                                                         @RequestHeader(value = USER_ID_HEADER) long userId)
             throws EntityNotFoundException {
-        CartDTO newCart = cartService.removeProductFromCart(email, productName);
+        CartDTO newCart = cartService.removeProductFromCart(userId, productName);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 
     @DeleteMapping
-    public ResponseEntity<CartDTO> deleteCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam("email") String email)
+    public ResponseEntity<CartDTO> deleteCartByUserId(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @RequestParam("email") String email,
+                                                     @RequestHeader(value = USER_ID_HEADER) long userId)
             throws EntityNotFoundException {
-        cartService.deleteCartByEmail(email);
+        cartService.deleteCartByUserId(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/{email}")
     @ResponseBody
-    public ResponseEntity<CartDTO> getCartByEmail(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email) throws EntityNotFoundException {
-        CartDTO newCart = cartService.getCartByEmail(email);
+    public ResponseEntity<CartDTO> getCartByUserId(@Email(message = "Invalid email!", regexp = Constants.EMAIL_REGEXP) @PathVariable("email") String email,
+                                                  @RequestHeader(value = USER_ID_HEADER) long userId){
+        CartDTO newCart = cartService.getCartByUserId(userId);
         return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 }

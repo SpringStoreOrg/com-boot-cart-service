@@ -1,34 +1,29 @@
 package com.boot.cart.service;
 
-import java.io.DataInput;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.boot.cart.client.ProductServiceClient;
+import com.boot.cart.client.UserServiceClient;
 import com.boot.cart.dto.CartDTO;
 import com.boot.cart.dto.ProductDTO;
-import com.boot.cart.dto.UserDTO;
+import com.boot.cart.exception.EntityNotFoundException;
+import com.boot.cart.exception.InvalidInputDataException;
 import com.boot.cart.model.Cart;
 import com.boot.cart.model.CartEntry;
 import com.boot.cart.repository.CartEntryRepository;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.boot.cart.repository.CartRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.boot.cart.client.ProductServiceClient;
-import com.boot.cart.client.UserServiceClient;
-import com.boot.cart.exception.EntityNotFoundException;
-import com.boot.cart.exception.InvalidInputDataException;
-import com.boot.cart.repository.CartRepository;
-
-
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.boot.cart.model.Cart.cartEntityToDto;
 
@@ -47,7 +42,7 @@ public class CartService {
     UserServiceClient userServiceClient;
 
 
-    public CartDTO addProductToCart(String email, String productName, int quantity)
+    public CartDTO addProductToCart(long userId, String productName, int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
         log.info("addProductToCart - process started");
         ProductDTO productDTO;
@@ -65,14 +60,8 @@ public class CartService {
             throw new InvalidInputDataException("You can not add more than: " + productDTO.getStock() + " "
                     + productName + " Products to your shopping cart!");
         }
-        UserDTO user;
-        try {
-            user = userServiceClient.callGetUserByEmail(email);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-        }
 
-        Cart cart = cartRepository.findByUserId(user.getId()).orElse(null);
+        Cart cart = cartRepository.findByUserId(userId).orElse(null);
 
         List<CartEntry> cartEntries;
         double productTotal = 0;
@@ -111,14 +100,14 @@ public class CartService {
 
         cart.setEntries(cartEntries);
         cart.setTotal(cart.getTotal() + productTotal);
-        cart.setUserId(user.getId());
+        cart.setUserId(userId);
 
         cartRepository.save(cart);
 
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
-    public CartDTO updateProductFromCart(String email, String productName, int quantity)
+    public CartDTO updateProductFromCart(long userId, String productName, int quantity)
             throws InvalidInputDataException, EntityNotFoundException {
         log.info("updateProductFromCart - process started");
 
@@ -137,14 +126,8 @@ public class CartService {
             throw new InvalidInputDataException("You can not add more than: " + productDTO.getStock() + " "
                     + productName + " Products to your shopping cart!");
         }
-        UserDTO user;
-        try {
-            user = userServiceClient.callGetUserByEmail(email);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-        }
 
-        Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() ->
                 new EntityNotFoundException("Cart not found in the Database!"));
 
         List<CartEntry> cartEntries;
@@ -169,20 +152,13 @@ public class CartService {
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
-    public CartDTO updateProductToCartOnLogin(String email, String products)
+    public CartDTO updateProductToCartOnLogin(long userId, String products)
             throws InvalidInputDataException, EntityNotFoundException, IOException {
         log.info("updateProductToCartOnLogin - process started");
 
         ObjectMapper mapper = new ObjectMapper();
 
         List<ProductDTO> productDTOs = Arrays.asList(mapper.readValue(products, ProductDTO[].class));
-
-        UserDTO user;
-        try {
-            user = userServiceClient.callGetUserByEmail(email);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-        }
 
         for (ProductDTO productDTO : productDTOs) {
             try {
@@ -195,13 +171,13 @@ public class CartService {
                 throw new InvalidInputDataException("We are sorry, but currently: " + productDTO.getName() + " is out of order!");
             }
         }
-        Optional<Cart> optionalCart = cartRepository.findByUserId(user.getId());
+        Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
         Cart cart = null;
         if (optionalCart.isPresent()) {
             cart = optionalCart.get();
         } else {
             Cart newCart = new Cart();
-            newCart.setUserId(user.getId());
+            newCart.setUserId(userId);
             newCart.setEntries(new ArrayList<>());
             newCart.setTotal(0);
             cart = cartRepository.save(newCart);
@@ -240,7 +216,7 @@ public class CartService {
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
-    public CartDTO removeProductFromCart(String email, String productName)
+    public CartDTO removeProductFromCart(long userId, String productName)
             throws EntityNotFoundException {
         log.info("removeProductFromCart - process started");
 
@@ -251,14 +227,7 @@ public class CartService {
             throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
         }
 
-        UserDTO user;
-        try {
-            user = userServiceClient.callGetUserByEmail(email);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-        }
-
-        Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() ->
                 new EntityNotFoundException("Cart not found in the Database!"));
 
         List<CartEntry> matchingEntries = cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).collect(Collectors.toList());
@@ -280,37 +249,22 @@ public class CartService {
         }
     }
 
-    public void deleteCartByEmail(String email) throws EntityNotFoundException {
-        UserDTO user;
-        try {
-            user = userServiceClient.callGetUserByEmail(email);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-        }
-
-        Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() ->
+    public void deleteCartByUserId(long userId) throws EntityNotFoundException {
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() ->
                 new EntityNotFoundException("Cart not found in the Database!"));
         cartRepository.delete(cart);
         log.info("Cart successfully deleted!");
 
     }
 
-    public CartDTO getCartByEmail(String email) throws EntityNotFoundException {
-
-        UserDTO user;
-        try {
-            user = userServiceClient.callGetUserByEmail(email);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("Email: " + email + " not found in the Database!");
-        }
-
-        Optional<Cart> optionalCart = cartRepository.findByUserId(user.getId());
+    public CartDTO getCartByUserId(long userId){
+        Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
         Cart cart = null;
         if (optionalCart.isPresent()) {
             cart = optionalCart.get();
         } else {
             Cart newCart = new Cart();
-            newCart.setUserId(user.getId());
+            newCart.setUserId(userId);
             newCart.setTotal(0);
             newCart.setEntries(new ArrayList<>());
             cart = cartRepository.save(newCart);
