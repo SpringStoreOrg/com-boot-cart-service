@@ -9,11 +9,11 @@
 
         <preConditions onFail="HALT">
             <not>
-                <tableExists schemaName="cart" tableName="cart_entry"/>
+                <tableExists tableName="cart_entry"/>
             </not>
         </preConditions>
 
-        <createTable schemaName="cart" tableName="cart_entry">
+        <createTable tableName="cart_entry">
             <column name="id" type="bigint" autoIncrement="true" >
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -32,13 +32,10 @@
         </createTable>
 
         <addForeignKeyConstraint
-                                 baseTableSchemaName="cart"
                                  baseTableName="cart_entry"
                                  baseColumnNames="cart_id"
                                  constraintName="cart_entry_f1"
-                                 referencedTableSchemaName="cart"
                                  referencedTableName="cart"
                                  referencedColumnNames="id"/>
-
     </changeSet>
 </databaseChangeLog>
