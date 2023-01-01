@@ -1,8 +1,8 @@
 package com.boot.cart.service;
 
 import com.boot.cart.client.ProductServiceClient;
-import com.boot.cart.client.UserServiceClient;
 import com.boot.cart.dto.CartDTO;
+import com.boot.cart.dto.CartItemDTO;
 import com.boot.cart.dto.ProductDTO;
 import com.boot.cart.exception.EntityNotFoundException;
 import com.boot.cart.exception.InvalidInputDataException;
@@ -10,7 +10,6 @@ import com.boot.cart.model.Cart;
 import com.boot.cart.model.CartEntry;
 import com.boot.cart.repository.CartEntryRepository;
 import com.boot.cart.repository.CartRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -18,9 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,8 +35,6 @@ public class CartService {
     CartRepository cartRepository;
 
     ProductServiceClient productServiceClient;
-
-    UserServiceClient userServiceClient;
 
 
     public CartDTO addProductToCart(long userId, String productName, int quantity)
@@ -107,70 +102,9 @@ public class CartService {
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
-    public CartDTO updateProductFromCart(long userId, String productName, int quantity)
-            throws InvalidInputDataException, EntityNotFoundException {
-        log.info("updateProductFromCart - process started");
-
-        ProductDTO productDTO;
-        try {
-            productDTO = productServiceClient.callGetProductByProductName(productName);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
-        }
-
-        if (productDTO.getStock() == 0) {
-            throw new InvalidInputDataException("We are sorry, but currently: " + productName + " is out of order!");
-        }
-
-        if (productDTO.getStock() < quantity) {
-            throw new InvalidInputDataException("You can not add more than: " + productDTO.getStock() + " "
-                    + productName + " Products to your shopping cart!");
-        }
-
-        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() ->
-                new EntityNotFoundException("Cart not found in the Database!"));
-
-        List<CartEntry> cartEntries;
-        Integer initialQuantity = 0;
-
-        cartEntries = cart.getEntries();
-        CartEntry cartEntry = cartEntries.stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().orElse(null);
-
-        if (cartEntry == null) {
-            throw new EntityNotFoundException("CartEntry not found in the Database!");
-        } else {
-            initialQuantity = cartEntry.getQuantity();
-            cartEntry.setQuantity(quantity);
-        }
-
-        double total = cart.getTotal() - (initialQuantity * productDTO.getPrice()) + (quantity * productDTO.getPrice());
-
-        cart.setTotal(total);
-
-        cartRepository.save(cart);
-
-        return cartEntityToDto(cart, getProductDTOS(cart));
-    }
-
-    public CartDTO updateProductToCartOnLogin(long userId, String products)
-            throws InvalidInputDataException, EntityNotFoundException, IOException {
+    public CartDTO updateCart(long userId, List<CartItemDTO> cartItems)
+            throws InvalidInputDataException, EntityNotFoundException{
         log.info("updateProductToCartOnLogin - process started");
-
-        ObjectMapper mapper = new ObjectMapper();
-
-        List<ProductDTO> productDTOs = Arrays.asList(mapper.readValue(products, ProductDTO[].class));
-
-        for (ProductDTO productDTO : productDTOs) {
-            try {
-                productServiceClient.callGetProductByProductName(productDTO.getName());
-            } catch (HttpClientErrorException.NotFound e) {
-                throw new EntityNotFoundException("Product: " + productDTO.getName() + " not found in the Database!");
-            }
-
-            if (productDTO.getStock() == 0) {
-                throw new InvalidInputDataException("We are sorry, but currently: " + productDTO.getName() + " is out of order!");
-            }
-        }
         Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
         Cart cart = null;
         if (optionalCart.isPresent()) {
@@ -187,32 +121,40 @@ public class CartService {
 
         double cartTotal = 0;
 
-        for (ProductDTO productDTO : productDTOs) {
+        for (CartItemDTO item : cartItems) {
+            try {
+                ProductDTO productDTO = productServiceClient.callGetProductByProductName(item.getName());
+                if (productDTO.getStock() <  item.getQuantity()) {
+                    throw new InvalidInputDataException("We are sorry, but currently: " + item.getName() + " is out of order!");
+                }
 
-            Integer initialQuantity = 0;
+                CartEntry cartEntry = cartEntries.stream().filter(entry -> productDTO.getName().equals(entry.getProductName())).findFirst().orElse(null);
 
-            CartEntry cartEntry = cartEntries.stream().filter(entry -> productDTO.getName().equals(entry.getProductName())).findFirst().orElse(null);
+                if (cartEntry == null) {
+                    CartEntry newCartEntry = new CartEntry();
+                    newCartEntry.setProductName(productDTO.getName());
+                    newCartEntry.setPrice(productDTO.getPrice());
+                    newCartEntry.setQuantity(item.getQuantity());
+                    newCartEntry.setCart(cart);
+                    cartEntries.add(newCartEntry);
 
-            if (cartEntry == null) {
-                CartEntry newCartEntry = new CartEntry();
-                newCartEntry.setProductName(productDTO.getName());
-                newCartEntry.setPrice(productDTO.getPrice());
-                newCartEntry.setQuantity(productDTO.getQuantity());
-                newCartEntry.setCart(cart);
-                cartEntries.add(newCartEntry);
+                    cartTotal += newCartEntry.getQuantity() * productDTO.getPrice();
+                } else {
+                    cartTotal-=cartEntry.getQuantity()*cartEntry.getPrice();
 
-                cartTotal = (cart.getTotal() - initialQuantity * productDTO.getPrice()) + (newCartEntry.getQuantity() * productDTO.getPrice());
-            } else {
-                initialQuantity = cartEntry.getQuantity();
-                cartEntry.setQuantity(initialQuantity + productDTO.getQuantity());
+                    cartEntry.setQuantity(item.getQuantity());
+                    cartEntry.setPrice(productDTO.getPrice());
 
-                cartTotal = (cart.getTotal() - initialQuantity * productDTO.getPrice()) + (cartEntry.getQuantity() * productDTO.getPrice());
+                    cartTotal+=cartEntry.getQuantity() * productDTO.getPrice();
+                }
+
+                cart.setTotal(cartTotal);
+            } catch (HttpClientErrorException.NotFound e) {
+                throw new EntityNotFoundException("Product: " + item.getName() + " not found in the Database!");
             }
-
-            cart.setTotal(cartTotal);
-
-            cartRepository.save(cart);
         }
+
+        cartRepository.save(cart);
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
@@ -220,9 +162,8 @@ public class CartService {
             throws EntityNotFoundException {
         log.info("removeProductFromCart - process started");
 
-        ProductDTO productDTO;
         try {
-            productDTO = productServiceClient.callGetProductByProductName(productName);
+            productServiceClient.callGetProductByProductName(productName);
         } catch (HttpClientErrorException.NotFound e) {
             throw new EntityNotFoundException("Product: " + productName + " not found in the Database!");
         }
@@ -231,7 +172,9 @@ public class CartService {
                 new EntityNotFoundException("Cart not found in the Database!"));
 
         List<CartEntry> matchingEntries = cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).collect(Collectors.toList());
-        cart.setTotal(cart.getTotal() - cart.getEntries().stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().get().getQuantity() * productDTO.getPrice());
+
+        matchingEntries.stream().forEach(item-> cart.setTotal(cart.getTotal()- item.getPrice()*item.getQuantity()));
+
         cart.getEntries().removeAll(matchingEntries);
 
         cartRepository.save(cart);
@@ -254,7 +197,6 @@ public class CartService {
                 new EntityNotFoundException("Cart not found in the Database!"));
         cartRepository.delete(cart);
         log.info("Cart successfully deleted!");
-
     }
 
     public CartDTO getCartByUserId(long userId){
