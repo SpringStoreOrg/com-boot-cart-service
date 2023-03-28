@@ -1,21 +1,14 @@
 package com.boot.cart.model;
 
 import com.boot.cart.client.ProductServiceClient;
-import com.boot.cart.dto.CartDTO;
 import com.boot.cart.dto.CartEntryDTO;
 import com.boot.cart.dto.ProductDTO;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.persistence.*;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 @Accessors(chain = true)
@@ -43,7 +36,7 @@ public class CartEntryMapper implements Serializable {
                         .setProductName(product.getName())
                         .setDescription(product.getDescription())
                         .setPrice(product.getPrice())
-                        .setPhotoLink(product.getPhotoLink())
+                        .setPhotoLinks(product.getPhotoLinks())
                         .setStock(product.getStock())
                         .setQuantity(cartEntries.get(product.getName()).getQuantity()));
             }
