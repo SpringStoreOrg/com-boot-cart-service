@@ -3,6 +3,7 @@ package com.boot.cart.service;
 import com.boot.cart.client.ProductServiceClient;
 import com.boot.cart.dto.*;
 import com.boot.cart.exception.EntityNotFoundException;
+import com.boot.cart.exception.InvalidInputDataException;
 import com.boot.cart.model.Cart;
 import com.boot.cart.model.CartEntry;
 import com.boot.cart.repository.CartRepository;
@@ -11,11 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -27,13 +25,13 @@ import static com.boot.cart.model.Cart.cartEntityToDto;
 @Transactional
 public class CartService {
     private CartRepository cartRepository;
-    private ProductPriceService productPriceService;
     private ProductServiceClient productServiceClient;
 
     public CartDTO addProductToCart(long userId, String productName, int quantity){
-        log.info("Add product:{} quantity:{} for userId:{}", productName, quantity, userId);
-        long productPrice = productPriceService.getPrice(productName);
-        productServiceClient.reserve(productName, quantity);
+        ProductInfoDTO productInfo = productServiceClient.getProductInfo(productName);
+        if (quantity > productInfo.getQuantity()) {
+            throw new InvalidInputDataException("Insufficient stocks");
+        }
 
         Cart cart = cartRepository.findByUserId(userId).orElse(null);
 
@@ -46,7 +44,7 @@ public class CartService {
             cart.setEntries(cartEntries);
             CartEntry cartEntry = new CartEntry();
             cartEntry.setProductName(productName);
-            cartEntry.setPrice(productPrice);
+            cartEntry.setPrice(productInfo.getPrice());
             cartEntry.setQuantity(quantity);
             cartEntry.setCart(cart);
 
@@ -56,101 +54,70 @@ public class CartService {
             CartEntry cartEntry = cartEntries.stream().filter(entry -> productName.equals(entry.getProductName())).findFirst().orElse(null);
 
             if (cartEntry != null) {
-                cartEntry.setPrice(productPrice);
+                cartEntry.setPrice(productInfo.getPrice());
                 cartEntry.setQuantity(cartEntry.getQuantity() + quantity);
                 cartEntry.setCart(cart);
             } else {
                 CartEntry newCartEntry = new CartEntry();
                 newCartEntry.setProductName(productName);
-                newCartEntry.setPrice(productPrice);
+                newCartEntry.setPrice(productInfo.getPrice());
                 newCartEntry.setQuantity(quantity);
                 newCartEntry.setCart(cart);
                 cartEntries.add(newCartEntry);
             }
         }
 
-        productTotal += quantity * productPrice;
+        productTotal += quantity * productInfo.getPrice();
 
         cart.setTotal(cart.getTotal() + productTotal);
         cart.setUserId(userId);
 
         cartRepository.save(cart);
-        //on fail do reverse operation
-
+        log.info("Added product:{} quantity:{} for userId:{}", productName, quantity, userId);
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
     public CartDTO updateCart(long userId, List<CartItemDTO> cartItems) {
-        log.info("Updating userId:{} with {} items", userId, cartItems.size());
+        Map<String, ProductInfoDTO> productInfoMap = getProductsInfo(cartItems);
         Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
         Cart cart = null;
         if (optionalCart.isPresent()) {
             cart = optionalCart.get();
+            cart.getEntries().clear();
         } else {
-            Cart newCart = new Cart();
-            newCart.setUserId(userId);
-            newCart.setEntries(new ArrayList<>());
-            newCart.setTotal(0);
-            cart = cartRepository.save(newCart);
+            cart = new Cart();
+            cart.setUserId(userId);
+            cart.setEntries(new ArrayList<>());
         }
-
-        List<CartEntry> cartEntries = cart.getEntries();
 
         double cartTotal = 0;
 
-        List<BatchUpdateDTO> batchUpdate = new ArrayList<>();
         for (CartItemDTO item : cartItems) {
-            try {
-                Optional<CartEntry> cartEntry = cartEntries.stream()
-                        .filter(entry -> item.getName().equals(entry.getProductName()))
-                        .findFirst();
-
-                long productPrice = productPriceService.getPrice(item.getName());
-                if (cartEntry.isEmpty()) {
-                    CartEntry newCartEntry = new CartEntry();
-                    newCartEntry.setProductName(item.getName());
-                    newCartEntry.setPrice(productPrice);
-                    newCartEntry.setQuantity(item.getQuantity());
-                    newCartEntry.setCart(cart);
-                    cartEntries.add(newCartEntry);
-                    batchUpdate.add(new BatchUpdateDTO(item.getName(), item.getQuantity(), Operation.SUBTRACT));
-
-                    cartTotal += newCartEntry.getQuantity() * productPrice;
-                } else {
-                    if (item.getQuantity().compareTo(cartEntry.get().getQuantity()) != 0) {
-                        if (item.getQuantity().compareTo(cartEntry.get().getQuantity()) > 0) {
-                            batchUpdate.add(new BatchUpdateDTO(item.getName(), item.getQuantity() - cartEntry.get().getQuantity(), Operation.SUBTRACT));
-                        } else {
-                            batchUpdate.add(new BatchUpdateDTO(item.getName(), cartEntry.get().getQuantity() - item.getQuantity(), Operation.ADD));
-                        }
-
-                        cartTotal -= cartEntry.get().getQuantity() * cartEntry.get().getPrice();
-
-                        cartEntry.get().setQuantity(item.getQuantity());
-                        cartEntry.get().setPrice(productPrice);
-
-                        cartTotal += cartEntry.get().getQuantity() * productPrice;
-                    }
-                }
-
-                cart.setTotal(cartTotal);
-            } catch (HttpClientErrorException.NotFound e) {
-                throw new EntityNotFoundException("Product: " + item.getName() + " not found in the Database!");
+            ProductInfoDTO productInfo = productInfoMap.get(item.getName());
+            if (item.getQuantity() > productInfo.getQuantity()) {
+                throw new InvalidInputDataException("Insufficient stocks");
             }
-        }
+            CartEntry cartEntry = new CartEntry();
+            cartEntry.setProductName(item.getName());
+            cartEntry.setPrice(productInfo.getPrice());
+            cartEntry.setQuantity(item.getQuantity());
+            cartEntry.setCart(cart);
+            cart.getEntries().add(cartEntry);
 
-        if (!batchUpdate.isEmpty()) {
-            productServiceClient.batchReserve(batchUpdate);
-            cartRepository.save(cart);
+            cartTotal += cartEntry.getQuantity() * productInfo.getPrice();
         }
+        cart.setTotal(cartTotal);
+
+        cartRepository.save(cart);
+        log.info("Updated userId:{} with {}", userId, cartItems.stream()
+                .map(item -> String.format("Product:%s Quantity:%s", item.getName(), item.getQuantity()))
+                .collect(Collectors.joining(",")));
 
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
     public CartDTO removeProductFromCart(long userId, String productName)
             throws EntityNotFoundException {
-        log.info("Removing product:{} for userId:{}", productName, userId);
-
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Cart not found in the Database!"));
 
@@ -162,14 +129,12 @@ public class CartService {
             AtomicInteger quantity = new AtomicInteger();
             matchingEntries.forEach(item-> quantity.getAndAdd(item.getQuantity()));
 
-            productServiceClient.reserveRelease(productName, quantity.get());
-
             matchingEntries.forEach(item-> cart.setTotal(cart.getTotal()-item.getPrice()*item.getQuantity()));
             cart.getEntries().removeAll(matchingEntries);
 
             cartRepository.save(cart);
         }
-
+        log.info("Removed product:{} for userId:{}", productName, userId);
 
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
@@ -189,14 +154,8 @@ public class CartService {
     public void deleteCartByUserId(long userId) {
         Cart cart = cartRepository.findByUserId(userId).orElseThrow(() ->
                 new EntityNotFoundException("Cart not found in the Database!"));
-        if (!cart.getEntries().isEmpty()) {
-            List<BatchUpdateDTO> batchUpdate = cart.getEntries().stream()
-                    .map(item->new BatchUpdateDTO(item.getProductName(), item.getQuantity(), Operation.ADD))
-                    .collect(Collectors.toList());
-            productServiceClient.batchReserveRelease(batchUpdate);
-        }
         cartRepository.delete(cart);
-        log.info("Cart successfully deleted!");
+        log.info("Cart for user:{} successfully deleted!", userId);
     }
 
     public CartDTO getCartByUserId(long userId){
@@ -213,5 +172,10 @@ public class CartService {
         }
 
         return cartEntityToDto(cart, getProductDTOS(cart));
+    }
+
+    private Map<String, ProductInfoDTO> getProductsInfo(List<CartItemDTO> cartItems){
+        return Arrays.stream(productServiceClient.getProductsInfo(cartItems.stream().map(item->item.getName()).collect(Collectors.toList())))
+                .collect(Collectors.toMap(ProductInfoDTO::getName, item->item));
     }
 }

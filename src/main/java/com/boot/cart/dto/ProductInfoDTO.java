@@ -9,8 +9,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class BatchUpdateDTO {
-    private String productName;
-    private long quantity;
-    private Operation operation;
+public class ProductInfoDTO {
+    private String name;
+    private int quantity;
+    private double price;
 }
