@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.boot.cart.model.Cart.cartEntityToDto;
@@ -126,9 +125,6 @@ public class CartService {
                 .collect(Collectors.toList());
 
         if(!matchingEntries.isEmpty()){
-            AtomicInteger quantity = new AtomicInteger();
-            matchingEntries.forEach(item-> quantity.getAndAdd(item.getQuantity()));
-
             matchingEntries.forEach(item-> cart.setTotal(cart.getTotal()-item.getPrice()*item.getQuantity()));
             cart.getEntries().removeAll(matchingEntries);
 
