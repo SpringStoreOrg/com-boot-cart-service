@@ -18,9 +18,6 @@ import com.boot.cart.repository.CartRepository;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Configuration
-@EnableScheduling
-@ConditionalOnProperty(name = "spring.enable.scheduling")
 public class PurgeService {
 
     @Autowired
