@@ -79,40 +79,46 @@ public class CartService {
     public CartDTO updateCart(long userId, List<CartItemDTO> cartItems) {
         Map<String, ProductInfoDTO> productInfoMap = getProductsInfo(cartItems);
         Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
-        Cart cart = null;
-        if (optionalCart.isPresent()) {
-            cart = optionalCart.get();
-            cart.getEntries().clear();
-        } else {
-            cart = new Cart();
-            cart.setUserId(userId);
-            cart.setEntries(new ArrayList<>());
-        }
 
         double cartTotal = 0;
+        if (optionalCart.isEmpty()) {
+            optionalCart = Optional.of(new Cart());
+            optionalCart.get().setUserId(userId);
+            optionalCart.get().setEntries(new ArrayList<>());
+        } else {
+            cartTotal = optionalCart.get().getTotal();
+        }
 
         for (CartItemDTO item : cartItems) {
             ProductInfoDTO productInfo = productInfoMap.get(item.getName());
             if (item.getQuantity() > productInfo.getQuantity()) {
                 throw new InvalidInputDataException("Insufficient stocks");
             }
-            CartEntry cartEntry = new CartEntry();
-            cartEntry.setProductName(item.getName());
-            cartEntry.setPrice(productInfo.getPrice());
-            cartEntry.setQuantity(item.getQuantity());
-            cartEntry.setCart(cart);
-            cart.getEntries().add(cartEntry);
 
-            cartTotal += cartEntry.getQuantity() * productInfo.getPrice();
+            Optional<CartEntry> cartEntry = optionalCart.get().getEntries().stream().filter(entry -> item.getName().equals(entry.getProductName())).findFirst();
+            if (cartEntry.isEmpty()) {
+                cartEntry = Optional.of(new CartEntry());
+                cartEntry.get().setProductName(productInfo.getName());
+                cartEntry.get().setPrice(productInfo.getPrice());
+                cartEntry.get().setQuantity(item.getQuantity());
+                cartEntry.get().setCart(optionalCart.get());
+            } else {
+                cartTotal -= cartEntry.get().getQuantity() * cartEntry.get().getPrice();
+
+                cartEntry.get().setQuantity(item.getQuantity());
+                cartEntry.get().setPrice(productInfo.getPrice());
+            }
+            optionalCart.get().getEntries().add(cartEntry.get());
+            cartTotal += cartEntry.get().getQuantity() * productInfo.getPrice();
         }
-        cart.setTotal(cartTotal);
+        optionalCart.get().setTotal(cartTotal);
 
-        cartRepository.save(cart);
+        cartRepository.save(optionalCart.get());
         log.info("Updated userId:{} with {}", userId, cartItems.stream()
                 .map(item -> String.format("Product:%s Quantity:%s", item.getName(), item.getQuantity()))
                 .collect(Collectors.joining(",")));
 
-        return cartEntityToDto(cart, getProductDTOS(cart));
+        return cartEntityToDto(optionalCart.get(), getProductDTOS(optionalCart.get()));
     }
 
     public CartDTO removeProductFromCart(long userId, String productName)
