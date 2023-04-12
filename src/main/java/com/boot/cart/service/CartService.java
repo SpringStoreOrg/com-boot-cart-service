@@ -27,7 +27,7 @@ public class CartService {
     private ProductServiceClient productServiceClient;
 
     public CartDTO addProductToCart(long userId, String productName, int quantity){
-        ProductInfoDTO productInfo = productServiceClient.getProductInfo(productName);
+        ProductInfoDTO productInfo = productServiceClient.getProductInfoByProductName(productName);
         if (quantity > productInfo.getQuantity()) {
             throw new InvalidInputDataException("Insufficient stocks");
         }
@@ -147,7 +147,7 @@ public class CartService {
                 .collect(Collectors.joining(","));
 
         if (StringUtils.isNotBlank(productParam)) {
-            return productServiceClient.callGetAllProductsFromUser(productParam, false);
+            return productServiceClient.callGetAllProductsFromUser(productParam, false).getBody();
         } else {
             return new ArrayList<>();
         }
@@ -176,8 +176,9 @@ public class CartService {
         return cartEntityToDto(cart, getProductDTOS(cart));
     }
 
-    private Map<String, ProductInfoDTO> getProductsInfo(List<CartItemDTO> cartItems){
-        return Arrays.stream(productServiceClient.getProductsInfo(cartItems.stream().map(item->item.getName()).collect(Collectors.toList())))
-                .collect(Collectors.toMap(ProductInfoDTO::getName, item->item));
+    private Map<String, ProductInfoDTO> getProductsInfo(List<CartItemDTO> cartItems) {
+        String productNames = cartItems.stream().map(CartItemDTO::getName).collect(Collectors.joining(","));
+        return productServiceClient.getProductInfo(productNames).stream()
+                .collect(Collectors.toMap(ProductInfoDTO::getName, item -> item));
     }
 }
