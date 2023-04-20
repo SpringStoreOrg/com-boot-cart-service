@@ -1,35 +1,30 @@
 package com.boot.cart.client;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.boot.cart.dto.ProductDTO;
+import com.boot.cart.dto.ProductInfoDTO;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.boot.cart.dto.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-
-import com.boot.cart.util.Constants;
+import java.util.List;
 
 
-@Component
-public class ProductServiceClient {
+@FeignClient(name="product-service")
+public interface ProductServiceClient {
 
-    @Autowired
-    private RestTemplate productServiceRestTemplate;
+    @GetMapping
+    @ResponseBody
+    ResponseEntity<List<ProductDTO>> callGetAllProductsFromUser(@RequestParam("productNames") String productNames,
+                                                 @RequestParam(value = "includeInactive") Boolean includeInactive);
 
-    public List<ProductDTO> callGetAllProductsFromUser(String productNames, Boolean includeInactive ) {
+    @GetMapping("/{productName}/info")
+    @ResponseBody
+    ProductInfoDTO getProductInfoByProductName(@PathVariable("productName") String productName);
 
-        return Arrays.asList(Objects.requireNonNull(productServiceRestTemplate.getForEntity(Constants.GET_ALL_PRODUCTS_FOR_USER, ProductDTO[].class, productNames, includeInactive).getBody()));
-    }
-
-    public ProductInfoDTO getProductInfo(String productName) {
-        ResponseEntity<ProductInfoDTO> responseEntity = productServiceRestTemplate.getForEntity("/{productName}/info", ProductInfoDTO.class, productName);
-        return responseEntity.getBody();
-    }
-
-    public ProductInfoDTO[] getProductsInfo(List<String> productNames) {
-        ResponseEntity<ProductInfoDTO[]> responseEntity = productServiceRestTemplate.getForEntity("/info?productNames={productNames}", ProductInfoDTO[].class, String.join(",", productNames));
-        return responseEntity.getBody();
-    }
+    @GetMapping("/info")
+    @ResponseBody
+    List<ProductInfoDTO> getProductInfo(@RequestParam String productNames);
 }
