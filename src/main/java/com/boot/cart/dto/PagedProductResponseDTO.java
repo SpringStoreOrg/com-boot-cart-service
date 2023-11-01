@@ -5,13 +5,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductInfoDTO {
-    private String slug;
-    private String name;
-    private int quantity;
-    private double price;
+public class PagedProductResponseDTO {
+    private List<ProductDTO> products;
+    private int totalItems;
+    private int totalPages;
+    private int currentPage;
 }

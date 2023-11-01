@@ -9,9 +9,9 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductInfoDTO {
-    private String slug;
-    private String name;
-    private int quantity;
-    private double price;
+public class CartItemResponse {
+    private int notInStock;
+    private int count;
+    private String productSlug;
+    private double totalPrice;
 }

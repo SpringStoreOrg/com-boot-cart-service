@@ -1,6 +1,7 @@
 
 package com.boot.cart.controller;
 
+import com.boot.cart.dto.CartItemResponse;
 import com.boot.cart.dto.CartDTO;
 import com.boot.cart.dto.CartItemDTO;
 import com.boot.cart.exception.EntityNotFoundException;
@@ -14,11 +15,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Size;
-import java.util.List;
 
 
 @Controller
-@RequestMapping("/")
+@RequestMapping("/cart")
 @AllArgsConstructor
 public class CartController {
 
@@ -27,31 +27,31 @@ public class CartController {
     private static final String USER_ID_HEADER = "User-Id";
 
     @PostMapping
-    public ResponseEntity<CartDTO> addProductToCart(@Validated @RequestBody CartItemDTO cartItem,
-                                                    @RequestHeader(value = USER_ID_HEADER) long userId)
+    public ResponseEntity<CartItemResponse> addProductToCart(@Validated @RequestBody CartItemDTO cartItem,
+                                                             @RequestHeader(value = USER_ID_HEADER) long userId)
             throws InvalidInputDataException, EntityNotFoundException {
-        CartDTO newCart = cartService.addProductToCart(userId, cartItem.getName(), cartItem.getQuantity());
-        return new ResponseEntity<>(newCart, HttpStatus.OK);
+        CartItemResponse response = cartService.addProductToCart(userId, cartItem.getName(), cartItem.getQuantity());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PutMapping
-    public ResponseEntity<CartDTO> updateCart(@RequestBody List<CartItemDTO> products,
-                                              @RequestHeader(value = USER_ID_HEADER) long userId)
+    public ResponseEntity<CartItemResponse> updateCartItem(@RequestBody CartItemDTO cartItem,
+                                                           @RequestHeader(value = USER_ID_HEADER) long userId)
             throws InvalidInputDataException, EntityNotFoundException{
-        CartDTO newCart = cartService.updateCart(userId, products);
-        return new ResponseEntity<>(newCart, HttpStatus.OK);
+        CartItemResponse response = cartService.updateCartItem(userId, cartItem.getName(), cartItem.getQuantity());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{productName}")
-    public ResponseEntity<CartDTO> removeProductFromCart(@Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productName") String productName,
+    @DeleteMapping("/{productSlug}")
+    public ResponseEntity<CartItemResponse> removeProductFromCart(@Size(min = 2, message = "Min Product Name size is 2!") @PathVariable("productSlug") String productSlug,
                                                          @RequestHeader(value = USER_ID_HEADER) long userId)
             throws EntityNotFoundException {
-        CartDTO newCart = cartService.removeProductFromCart(userId, productName);
-        return new ResponseEntity<>(newCart, HttpStatus.OK);
+        CartItemResponse itemResponse = cartService.removeProductFromCart(userId, productSlug);
+        return new ResponseEntity<>(itemResponse, HttpStatus.OK);
     }
 
     @DeleteMapping
-    public ResponseEntity<CartDTO> deleteCartByUserId(@RequestHeader(value = USER_ID_HEADER) long userId)
+    public ResponseEntity deleteCartByUserId(@RequestHeader(value = USER_ID_HEADER) long userId)
             throws EntityNotFoundException {
         cartService.deleteCartByUserId(userId);
         return new ResponseEntity<>(HttpStatus.OK);

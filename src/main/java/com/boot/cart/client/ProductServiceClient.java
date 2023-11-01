@@ -1,5 +1,6 @@
 package com.boot.cart.client;
 
+import com.boot.cart.dto.PagedProductResponseDTO;
 import com.boot.cart.dto.ProductDTO;
 import com.boot.cart.dto.ProductInfoDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -17,8 +18,9 @@ public interface ProductServiceClient {
 
     @GetMapping
     @ResponseBody
-    ResponseEntity<List<ProductDTO>> callGetAllProductsFromUser(@RequestParam("productNames") String productNames,
-                                                 @RequestParam(value = "includeInactive") Boolean includeInactive);
+    ResponseEntity<PagedProductResponseDTO> callGetAllProductsFromUser(@RequestParam("productNames") String productNames,
+                                                                       @RequestParam(value = "includeInactive") Boolean includeInactive,
+                                                                       @RequestParam(value = "size") int size);
 
     @GetMapping("/{productName}/info")
     @ResponseBody

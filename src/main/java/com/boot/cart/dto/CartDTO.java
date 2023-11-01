@@ -12,12 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartDTO {
-
-	private long id;
-
-	private Long userId;
-
-	private double total;
-
+	private double totalPrice;
 	private List<CartEntryDTO> entries;
 }

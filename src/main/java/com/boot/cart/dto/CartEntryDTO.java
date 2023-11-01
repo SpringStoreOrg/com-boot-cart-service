@@ -11,19 +11,10 @@ import java.util.List;
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartEntryDTO {
-
-	private long id;
-
-	private String productName;
-
-	private String description;
-
-	private double price;
-
-	private List<PhotoDTO> photoLinks;
-
-	private Integer stock;
-
+public class CartEntryDTO{
 	private Integer quantity;
+	private String slug;
+	private String name;
+	private long price;
+	private List<String> images;
 }
