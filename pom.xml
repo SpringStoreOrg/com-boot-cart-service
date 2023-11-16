@@ -126,8 +126,17 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<image>
-						<name>spring-store/${project.artifactId}</name>
+						<name>fractalwoodstories/${project.artifactId}:1.0.0</name>
 					</image>
+					<docker>
+						<publishRegistry>
+							<username>${docker.io.username}</username>
+							<password>${docker.io.password}</password>
+						</publishRegistry>
+					</docker>
+					<layers>
+						<enabled>true</enabled>
+					</layers>
 				</configuration>
 			</plugin>
 		</plugins>
