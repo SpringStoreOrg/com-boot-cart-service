@@ -126,7 +126,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<image>
-						<name>fractalwoodstories/${project.artifactId}:1.0.0</name>
+						<name>fractalwoodstories/${project.artifactId}</name>
 					</image>
 					<docker>
 						<publishRegistry>
