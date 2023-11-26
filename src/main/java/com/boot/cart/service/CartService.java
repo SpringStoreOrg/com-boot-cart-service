@@ -31,7 +31,7 @@ public class CartService {
         List<CartEntry> cartEntries = null;
         double productTotal = 0;
         Integer updatedQuantity = quantity;
-        Cart cart = optionalCart.get();
+        Cart cart = null;
         if (optionalCart.isEmpty()) {
             cart = new Cart();
             cartEntries = new ArrayList<>();
@@ -39,6 +39,7 @@ public class CartService {
 
             cartEntries.add(getNewCartEntry(cart, productSlug, productInfo.getPrice(), quantity));
         } else {
+            cart = optionalCart.get();
             productTotal = cart.getTotal();
             cartEntries = cart.getEntries();
             Optional<CartEntry> optionalCartEntry = cartEntries.stream()
