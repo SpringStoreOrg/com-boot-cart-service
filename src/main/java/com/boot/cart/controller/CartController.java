@@ -18,7 +18,7 @@ import javax.validation.constraints.Size;
 
 
 @Controller
-@RequestMapping("/cart")
+@RequestMapping("/")
 @AllArgsConstructor
 public class CartController {
 
