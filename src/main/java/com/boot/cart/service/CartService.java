@@ -126,10 +126,12 @@ public class CartService {
     }
 
     public void deleteCartByUserId(long userId) {
-        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() ->
-                new EntityNotFoundException("Cart not found in the Database!"));
-        cartRepository.delete(cart);
-        log.info("Cart for user:{} successfully deleted!", userId);
+        Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
+        if(!optionalCart.isEmpty()) {
+            cartRepository.delete(optionalCart.get());
+            log.info("Cart for user:{} successfully deleted!", userId);
+        }
+        log.info("No Cart found for user: {} !", userId);
     }
 
     public CartDTO getCartByUserId(long userId) {
