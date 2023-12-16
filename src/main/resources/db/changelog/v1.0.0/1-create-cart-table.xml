@@ -27,6 +27,9 @@
             <column name="user_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
+            <column name="version" type="bigint">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
     </changeSet>

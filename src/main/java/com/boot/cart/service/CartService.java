@@ -24,6 +24,7 @@ public class CartService {
     private ProductServiceClient productServiceClient;
 
     public CartItemResponse addProductToCart(long userId, String productSlug, int quantity){
+        log.info("Add product:{} quantity:{} for userId:{} started", productSlug, quantity, userId);
         ProductInfoDTO productInfo = productServiceClient.getProductInfoByProductName(productSlug);
         int notInStock = 0;
         Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
@@ -64,11 +65,12 @@ public class CartService {
         cart.setUserId(userId);
 
         cartRepository.save(cart);
-        log.info("Added product:{} quantity:{} for userId:{}", productSlug, quantity, userId);
+        log.info("Add product:{} quantity:{} for userId:{} finished", productSlug, quantity, userId);
         return new CartItemResponse(notInStock, updatedQuantity, productSlug, productTotal);
     }
 
     public CartItemResponse updateCartItem(long userId, String productSlug, int quantity) {
+        log.info("Update product:{} quantity:{} for userId:{} started", productSlug, quantity, userId);
         Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
         if (optionalCart.isEmpty()) {
             throw new EntityNotFoundException("Cart not found in the Database!");
@@ -101,12 +103,13 @@ public class CartService {
         cart.setUserId(userId);
 
         cartRepository.save(cart);
-        log.info("Updated product:{} quantity:{} for userId:{}", productSlug, quantity, userId);
+        log.info("Update product:{} quantity:{} for userId:{} finished", productSlug, quantity, userId);
         return new CartItemResponse(notInStock, quantity, productSlug, productTotal);
     }
 
     public CartItemResponse removeProductFromCart(long userId, String productSlug)
             throws EntityNotFoundException {
+        log.info("Remove product:{} for userId:{} started", productSlug, userId);
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Cart not found in the Database!"));
 
@@ -121,7 +124,7 @@ public class CartService {
             cartRepository.save(cart);
         }
 
-        log.info("Removed product:{} for userId:{}", productSlug, userId);
+        log.info("Remove product:{} for userId:{} finished", productSlug, userId);
         return new CartItemResponse(0, 0, productSlug, cart.getTotal());
     }
 

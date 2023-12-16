@@ -38,6 +38,9 @@ public class Cart implements Serializable {
 	@Column
 	private LocalDateTime lastUpdatedOn;
 
+	@Version
+	private int version;
+
 	@JsonManagedReference
 	@OneToMany(mappedBy = "cart", fetch = FetchType.LAZY,  cascade = { CascadeType.ALL}, orphanRemoval = true)
 	private List<CartEntry> entries;
