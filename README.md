@@ -5,6 +5,6 @@ Thanks.
 
 ```bash
 mvn package
-docker build . -t docker pull fractalwoodstories/cart-service:latest
+docker build . -t fractalwoodstories/cart-service:latest
 docker push fractalwoodstories/cart-service:latest
 ```
