@@ -119,6 +119,7 @@
 		</dependencies>
 	</dependencyManagement>
 	<build>
+		<defaultGoal>clean package</defaultGoal>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
