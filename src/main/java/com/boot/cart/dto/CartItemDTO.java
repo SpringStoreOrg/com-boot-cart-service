@@ -16,7 +16,7 @@ import javax.validation.constraints.Size;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CartItemDTO {
     @Size(min = 2, message = "Min Product Name size is 2!")
-    private String name;
+    private String slug;
     @Positive(message = "Quantity should be positive number")
     private Integer quantity;
 }

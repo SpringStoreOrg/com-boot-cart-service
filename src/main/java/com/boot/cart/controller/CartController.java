@@ -1,9 +1,9 @@
 
 package com.boot.cart.controller;
 
-import com.boot.cart.dto.CartItemResponse;
 import com.boot.cart.dto.CartDTO;
 import com.boot.cart.dto.CartItemDTO;
+import com.boot.cart.dto.CartItemResponse;
 import com.boot.cart.exception.EntityNotFoundException;
 import com.boot.cart.exception.InvalidInputDataException;
 import com.boot.cart.service.CartService;
@@ -15,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Size;
+import java.util.List;
 
 
 @Controller
@@ -30,7 +31,7 @@ public class CartController {
     public ResponseEntity<CartItemResponse> addProductToCart(@Validated @RequestBody CartItemDTO cartItem,
                                                              @RequestHeader(value = USER_ID_HEADER) long userId)
             throws InvalidInputDataException, EntityNotFoundException {
-        CartItemResponse response = cartService.addProductToCart(userId, cartItem.getName(), cartItem.getQuantity());
+        CartItemResponse response = cartService.addProductToCart(userId, cartItem.getSlug(), cartItem.getQuantity());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -38,8 +39,17 @@ public class CartController {
     public ResponseEntity<CartItemResponse> updateCartItem(@RequestBody CartItemDTO cartItem,
                                                            @RequestHeader(value = USER_ID_HEADER) long userId)
             throws InvalidInputDataException, EntityNotFoundException{
-        CartItemResponse response = cartService.updateCartItem(userId, cartItem.getName(), cartItem.getQuantity());
+        CartItemResponse response = cartService.updateCartItem(userId, cartItem.getSlug(), cartItem.getQuantity());
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<CartDTO> updateCartBatches(@RequestBody List<CartItemDTO> cartItems,
+                                                           @RequestHeader(value = USER_ID_HEADER) long userId)
+            throws InvalidInputDataException, EntityNotFoundException{
+        cartService.updateCartBatch(userId, cartItems);
+        CartDTO newCart = cartService.getCartByUserId(userId);
+        return new ResponseEntity<>(newCart, HttpStatus.OK);
     }
 
     @DeleteMapping("/{productSlug}")

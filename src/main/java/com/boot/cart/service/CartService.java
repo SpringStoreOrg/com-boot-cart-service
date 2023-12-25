@@ -6,6 +6,7 @@ import com.boot.cart.exception.EntityNotFoundException;
 import com.boot.cart.model.Cart;
 import com.boot.cart.model.CartEntry;
 import com.boot.cart.repository.CartRepository;
+import com.google.common.util.concurrent.AtomicDouble;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -100,11 +101,50 @@ public class CartService {
         productTotal += quantity * productInfo.getPrice();
 
         cart.setTotal(productTotal);
-        cart.setUserId(userId);
 
         cartRepository.save(cart);
         log.info("Update product:{} quantity:{} for userId:{} finished", productSlug, quantity, userId);
         return new CartItemResponse(notInStock, quantity, productSlug, productTotal);
+    }
+
+    public void updateCartBatch(long userId, List<CartItemDTO> cartItems) {
+        String cartSlugs = cartItems.stream()
+                .map(CartItemDTO::getSlug)
+                .collect(Collectors.joining(","));
+        log.info("Update batch products:{} for userId:{} started", cartSlugs, userId);
+        Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
+        List<CartEntry> cartEntries = null;
+        final Cart cart = optionalCart.isEmpty()?new Cart():optionalCart.get();
+        if (optionalCart.isEmpty()) {
+            cartEntries = new ArrayList<>();
+            cart.setEntries(cartEntries);
+            cart.setUserId(userId);
+        }else{
+            cartEntries = cart.getEntries();
+        }
+
+        final AtomicDouble productTotal = new AtomicDouble(cart.getTotal());
+
+        List<ProductInfoDTO> productInfos = productServiceClient.getProductInfo(cartSlugs);
+        Map<String, ProductInfoDTO> productInfoMap = productInfos.stream().collect(Collectors.toMap(ProductInfoDTO::getSlug, item->item));
+        Map<String, CartEntry> cartEntriesMap = cartEntries.stream().collect(Collectors.toMap(CartEntry::getProductName, item->item));
+        cartItems.forEach(item -> {
+            ProductInfoDTO productInfo = productInfoMap.get(item.getSlug());
+            CartEntry cartEntry = cartEntriesMap.get(item.getSlug());
+            if (productInfo != null) {
+                if (cartEntry != null) {
+                    cartEntry.setPrice(productInfo.getPrice());
+                    cartEntry.setQuantity(cartEntry.getQuantity() + item.getQuantity());
+                } else {
+                    cart.getEntries().add(getNewCartEntry(cart, item.getSlug(), productInfo.getPrice(), item.getQuantity()));
+                }
+                productTotal.getAndAdd(item.getQuantity() * productInfo.getPrice());
+            }
+        });
+
+        cart.setTotal(productTotal.get());
+        cartRepository.save(cart);
+        log.info("Update batch products:{} for userId:{} finished", cartSlugs, userId);
     }
 
     public CartItemResponse removeProductFromCart(long userId, String productSlug)
