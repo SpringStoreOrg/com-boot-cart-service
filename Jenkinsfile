@@ -50,5 +50,12 @@ pipeline {
                 }
             }
         }
+        stage('Helm') {
+            steps{
+                sh """
+                    helm upgrade --install front-end ./helm/front-end
+                """
+            }
+        }
     }
 }
