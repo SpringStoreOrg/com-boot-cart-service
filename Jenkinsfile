@@ -1,3 +1,5 @@
+def shortGitCommit
+
 pipeline {
     agent any
 
@@ -53,7 +55,7 @@ pipeline {
         stage('Helm') {
             steps{
                 sh """
-                    helm upgrade --install cart-service ./helm/cart-service
+                    helm upgrade --install cart-service ./helm/cart-service --set image.tag=${shortGitCommit}
                 """
             }
         }
