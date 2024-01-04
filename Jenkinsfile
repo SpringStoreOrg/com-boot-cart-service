@@ -53,7 +53,7 @@ pipeline {
         stage('Helm') {
             steps{
                 sh """
-                    helm upgrade --install front-end ./helm/front-end
+                    helm upgrade --install user-service ./helm/user-service
                 """
             }
         }
