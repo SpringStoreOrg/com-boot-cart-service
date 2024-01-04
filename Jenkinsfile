@@ -46,7 +46,7 @@ pipeline {
                     sh """
                         docker tag fractalwoodstories/cart-service:arm64-latest fractalwoodstories/cart-service:arm64-main
                         docker login -u ${USERNAME} -p ${PASSWORD}
-                        docker push fractalwoodstories/cart-service:arm64-master
+                        docker push fractalwoodstories/cart-service:arm64-main-${shortGitCommit}
                         docker logout
                     """
                 }
@@ -55,7 +55,7 @@ pipeline {
         stage('Helm') {
             steps{
                 sh """
-                    helm upgrade --install cart-service ./helm/cart-service --set image.tag=${shortGitCommit}
+                    helm upgrade --install cart-service ./helm/cart-service --set image.tag=arm64-${shortGitCommit}
                 """
             }
         }
