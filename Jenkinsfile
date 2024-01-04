@@ -52,10 +52,13 @@ pipeline {
                 }
             }
         }
-        stage('Helm') {
+        stage('Helm main') {
+            when {
+                expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'origin/main' }
+            }
             steps{
                 sh """
-                    helm upgrade --install cart-service ./helm/cart-service --set image.tag=arm64-${shortGitCommit}
+                    helm upgrade --install cart-service ./helm/cart-service --set image.tag=arm64-main-${shortGitCommit}
                 """
             }
         }
