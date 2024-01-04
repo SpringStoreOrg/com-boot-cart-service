@@ -15,7 +15,7 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh """
-                    docker build . -t fractalwoodstories/user-service:arm64-latest
+                    docker build . -t fractalwoodstories/cart-service:arm64-latest
                 """
             }
         }
@@ -25,10 +25,10 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'fractalwoodstories-docker-hub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         shortGitCommit = env.GIT_COMMIT[0..7]
                         sh """
-                            docker tag fractalwoodstories/user-service:arm64-latest fractalwoodstories/user-service:arm64-${shortGitCommit}
+                            docker tag fractalwoodstories/cart-service:arm64-latest fractalwoodstories/cart-service:arm64-${shortGitCommit}
                             docker login -u ${USERNAME} -p ${PASSWORD}
-                            docker push fractalwoodstories/user-service:arm64-latest
-                            docker push fractalwoodstories/user-service:arm64-${shortGitCommit}
+                            docker push fractalwoodstories/cart-service:arm64-latest
+                            docker push fractalwoodstories/cart-service:arm64-${shortGitCommit}
                             docker logout
                         """
                     }
@@ -42,9 +42,9 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'fractalwoodstories-docker-hub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh """
-                        docker tag fractalwoodstories/user-service:arm64-latest fractalwoodstories/user-service:arm64-main
+                        docker tag fractalwoodstories/cart-service:arm64-latest fractalwoodstories/cart-service:arm64-main
                         docker login -u ${USERNAME} -p ${PASSWORD}
-                        docker push fractalwoodstories/user-service:arm64-master
+                        docker push fractalwoodstories/cart-service:arm64-master
                         docker logout
                     """
                 }
@@ -53,7 +53,7 @@ pipeline {
         stage('Helm') {
             steps{
                 sh """
-                    helm upgrade --install user-service ./helm/user-service
+                    helm upgrade --install cart-service ./helm/cart-service
                 """
             }
         }
