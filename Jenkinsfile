@@ -58,7 +58,7 @@ pipeline {
             }
             steps{
                 sh """
-                    helm upgrade --install cart-service ./helm/cart-service --set image.tag=arm64-main-${shortGitCommit}
+                    helm upgrade --install cart-service --namespace fractalwoodstories --create-namespace ./helm/cart-service --set image.tag=arm64-main-${shortGitCommit}
                 """
             }
         }
