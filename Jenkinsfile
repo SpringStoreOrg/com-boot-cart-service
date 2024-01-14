@@ -52,6 +52,17 @@ pipeline {
                 }
             }
         }
+        stage('Docker housekeeping') {
+            steps {
+            sh """
+                docker image rm fractalwoodstories/cart-service:arm64-latest
+                docker image rm fractalwoodstories/cart-service:arm64-${shortGitCommit}
+                if [ "${env.BRANCH_NAME}" = "main" ] || [ "${env.BRANCH_NAME}" = "origin/main" ]; then
+                    docker image rm fractalwoodstories/cart-service:arm64-main-${shortGitCommit}
+                fi
+            """
+            }
+        }
         stage('Helm main') {
             when {
                 expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'origin/main' }
