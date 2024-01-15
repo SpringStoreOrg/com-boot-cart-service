@@ -1,7 +1,6 @@
 package com.boot.cart.client;
 
 import com.boot.cart.dto.PagedProductResponseDTO;
-import com.boot.cart.dto.ProductDTO;
 import com.boot.cart.dto.ProductInfoDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;

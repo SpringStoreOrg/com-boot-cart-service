@@ -188,7 +188,7 @@ public class CartService {
                         .setSlug(productDTO.getSlug())
                         .setName(productDTO.getName())
                         .setPrice(productDTO.getPrice())
-                        .setImages(productDTO.getImages());
+                        .setThumbnail(productDTO.getThumbnail());
             }).collect(Collectors.toList());
             return new CartDTO(optionalCart.get().getTotal(), entries);
         } else {
